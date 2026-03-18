@@ -1,3 +1,5 @@
+<img src='src/assets/foundry_logo.png' alt='Foundry Logo'/>
+
 # FOUNDRY 
 
 **Leaderboard & Task Assignment Platform**
