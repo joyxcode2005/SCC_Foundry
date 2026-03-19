@@ -1,250 +1,324 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../config';
 
-// Updated interface to match your database schema
 interface UserProfile {
-    first_name: string;
-    middle_name: string;
-    last_name: string;
-    phone: string;
-    college_roll: string;
-    department: string;
-    role: string;
-    email: string;
+  first_name: string; middle_name: string; last_name: string;
+  phone: string; college_roll: string; department: string;
+  role: string; email: string;
 }
 
+const InputRow = ({ label, children }: { label: string; children: React.ReactNode }) => (
+  <div>
+    <label style={{
+      display: 'block', fontSize: '11px', fontWeight: '600',
+      letterSpacing: '0.05em', textTransform: 'uppercase',
+      color: 'var(--text-muted)', marginBottom: '6px',
+    }}>
+      {label}
+    </label>
+    {children}
+  </div>
+);
+
 export default function Profile() {
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-    const [isEditing, setIsEditing] = useState(false);
-    const [message, setMessage] = useState({ type: '', text: '' });
-    
-    const [profile, setProfile] = useState<UserProfile>({
-        first_name: '',
-        middle_name: '',
-        last_name: '',
-        phone: '',
-        college_roll: '',
-        department: '',
-        role: 'MEMBER',
-        email: ''
-    });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '' });
 
-    const [formData, setFormData] = useState<UserProfile>(profile);
+  const [profile, setProfile] = useState<UserProfile>({
+    first_name: '', middle_name: '', last_name: '',
+    phone: '', college_roll: '', department: '', role: 'MEMBER', email: '',
+  });
+  const [formData, setFormData] = useState<UserProfile>(profile);
 
-    useEffect(() => {
-        async function getProfile() {
-            setLoading(true);
-            const { data: { user } } = await supabase.auth.getUser();
-
-            if (user) {
-                // Fetch from your custom 'users' table
-                const { data, error } = await supabase
-                    .from('users')
-                    .select('first_name, middle_name, last_name, phone, college_roll, department, role, email')
-                    .eq('id', user.id)
-                    .single();
-
-                if (!error && data) {
-                    const fetchedProfile = {
-                        first_name: data.first_name || '',
-                        middle_name: data.middle_name || '',
-                        last_name: data.last_name || '',
-                        phone: data.phone || '',
-                        college_roll: data.college_roll || '',
-                        department: data.department || '',
-                        role: data.role || 'MEMBER',
-                        email: data.email || user.email || '',
-                    };
-                    setProfile(fetchedProfile);
-                    setFormData(fetchedProfile);
-                } else if (error && error.code !== 'PGRST116') {
-                    console.error('Error loading user:', error.message);
-                }
-            }
-            setLoading(false);
+  useEffect(() => {
+    async function getProfile() {
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data, error } = await supabase.from('users')
+          .select('first_name, middle_name, last_name, phone, college_roll, department, role, email')
+          .eq('id', user.id).single();
+        if (!error && data) {
+          const p = {
+            first_name: data.first_name || '', middle_name: data.middle_name || '',
+            last_name: data.last_name || '', phone: data.phone || '',
+            college_roll: data.college_roll || '', department: data.department || '',
+            role: data.role || 'MEMBER', email: data.email || user.email || '',
+          };
+          setProfile(p); setFormData(p);
         }
-
-        getProfile();
-    }, []);
-
-    const handleEditToggle = () => {
-        setMessage({ type: '', text: '' }); 
-        setFormData(profile); 
-        setIsEditing(!isEditing);
-    };
-
-    const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        setSaving(true);
-        setMessage({ type: '', text: '' });
-
-        try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) throw new Error('No user is currently logged in.');
-
-            // Map the formData to your exact database columns
-            const updates = {
-                id: user.id,
-                first_name: formData.first_name,
-                middle_name: formData.middle_name || null, // Handle nullable field
-                last_name: formData.last_name,
-                phone: formData.phone,
-                college_roll: formData.college_roll,
-                department: formData.department,
-                updated_at: new Date(),
-            };
-
-            const { error } = await supabase.from('users').upsert(updates);
-            if (error) throw error;
-
-            setProfile(formData);
-            setIsEditing(false);
-            setMessage({ type: 'success', text: 'Profile updated successfully!' });
-            
-            setTimeout(() => setMessage({ type: '', text: '' }), 3000);
-
-        } catch (error: any) {
-            setMessage({ type: 'error', text: error.message || 'Error updating profile.' });
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center h-64">
-                <div className="text-gray-500 animate-pulse">Loading profile...</div>
-            </div>
-        );
+      }
+      setLoading(false);
     }
+    getProfile();
+  }, []);
 
-    // Helper to format the full name cleanly
-    const fullName = [profile.first_name, profile.middle_name, profile.last_name]
-        .filter(Boolean)
-        .join(' ');
+  const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setSaving(true);
+    setMessage({ type: '', text: '' });
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not logged in.');
+      const { error } = await supabase.from('users').upsert({
+        id: user.id, first_name: formData.first_name,
+        middle_name: formData.middle_name || null, last_name: formData.last_name,
+        phone: formData.phone, college_roll: formData.college_roll,
+        department: formData.department, updated_at: new Date(),
+      });
+      if (error) throw error;
+      setProfile(formData); setIsEditing(false);
+      setMessage({ type: 'success', text: 'Profile updated successfully.' });
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.message });
+    } finally {
+      setSaving(false);
+    }
+  };
 
+  const fullName = [profile.first_name, profile.middle_name, profile.last_name].filter(Boolean).join(' ');
+  const initials = [profile.first_name[0], profile.last_name[0]].filter(Boolean).join('').toUpperCase() || '?';
+
+  if (loading) {
     return (
-        <div className="max-w-4xl">
-            <div className="flex items-center justify-between mb-8">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Profile</h1>
-                    <p className="mt-2 text-gray-600">Manage your personal and academic information.</p>
-                </div>
-                
-                {!isEditing && (
-                    <button
-                        onClick={handleEditToggle}
-                        className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 transition-colors bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-900"
-                    >
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                        </svg>
-                        Edit Profile
-                    </button>
-                )}
-            </div>
-
-            {message.text && (
-                <div className={`mb-6 p-4 rounded-md text-sm font-medium ${message.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
-                    {message.text}
-                </div>
-            )}
-
-            <div className="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-sm">
-                {!isEditing ? (
-                    // ---------------- READ-ONLY VIEW ----------------
-                    <div className="px-6 py-8 sm:p-10">
-                        <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-lg font-medium leading-6 text-gray-900">Academic Details</h3>
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                                Role: {profile.role}
-                            </span>
-                        </div>
-                        <dl className="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
-                            <div className="sm:col-span-1">
-                                <dt className="text-sm font-medium text-gray-500">Full Name</dt>
-                                <dd className="mt-1 text-base text-gray-900">{fullName || 'Not provided'}</dd>
-                            </div>
-                            <div className="sm:col-span-1">
-                                <dt className="text-sm font-medium text-gray-500">Email address</dt>
-                                <dd className="mt-1 text-base text-gray-900">{profile.email || 'Not provided'}</dd>
-                            </div>
-                            <div className="sm:col-span-1">
-                                <dt className="text-sm font-medium text-gray-500">Phone</dt>
-                                <dd className="mt-1 text-base text-gray-900">{profile.phone || 'Not provided'}</dd>
-                            </div>
-                            <div className="sm:col-span-1">
-                                <dt className="text-sm font-medium text-gray-500">College Roll</dt>
-                                <dd className="mt-1 text-base text-gray-900 font-mono">{profile.college_roll || 'Not provided'}</dd>
-                            </div>
-                            <div className="sm:col-span-2">
-                                <dt className="text-sm font-medium text-gray-500">Department</dt>
-                                <dd className="mt-1 text-base text-gray-900">{profile.department || 'Not provided'}</dd>
-                            </div>
-                        </dl>
-                    </div>
-                ) : (
-                    // ---------------- EDIT MODE FORM ----------------
-                    <form onSubmit={handleUpdate} className="px-6 py-8 sm:p-10 space-y-6">
-                        <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-                            
-                            {/* Name Fields */}
-                            <div className="sm:col-span-2">
-                                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">First Name *</label>
-                                <input id="firstName" type="text" required value={formData.first_name} onChange={(e) => setFormData({...formData, first_name: e.target.value})} className="block w-full px-4 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
-                            </div>
-                            <div className="sm:col-span-2">
-                                <label htmlFor="middleName" className="block text-sm font-medium text-gray-700">Middle Name</label>
-                                <input id="middleName" type="text" value={formData.middle_name} onChange={(e) => setFormData({...formData, middle_name: e.target.value})} className="block w-full px-4 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
-                            </div>
-                            <div className="sm:col-span-2">
-                                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">Last Name *</label>
-                                <input id="lastName" type="text" required value={formData.last_name} onChange={(e) => setFormData({...formData, last_name: e.target.value})} className="block w-full px-4 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
-                            </div>
-
-                            {/* Contact Fields */}
-                            <div className="sm:col-span-3">
-                                <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone Number *</label>
-                                <input id="phone" type="tel" required placeholder="+91 98765 43210" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="block w-full px-4 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
-                            </div>
-                            <div className="sm:col-span-3">
-                                <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email Address</label>
-                                <input id="email" type="email" disabled value={formData.email} className="block w-full px-4 py-2 mt-1 text-gray-500 bg-gray-100 border border-gray-300 rounded-md shadow-sm cursor-not-allowed sm:text-sm" />
-                            </div>
-
-                            {/* Academic Fields */}
-                            <div className="sm:col-span-3">
-                                <label htmlFor="collegeRoll" className="block text-sm font-medium text-gray-700">College Roll *</label>
-                                <input id="collegeRoll" type="text" required value={formData.college_roll} onChange={(e) => setFormData({...formData, college_roll: e.target.value})} className="block w-full px-4 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm font-mono" />
-                            </div>
-                            <div className="sm:col-span-3">
-                                <label htmlFor="department" className="block text-sm font-medium text-gray-700">Department *</label>
-                                <input id="department" type="text" required placeholder="Computer Science" value={formData.department} onChange={(e) => setFormData({...formData, department: e.target.value})} className="block w-full px-4 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
-                            </div>
-
-                        </div>
-
-                        <div className="flex justify-end pt-4 space-x-3 border-t border-gray-200">
-                            <button
-                                type="button"
-                                onClick={handleEditToggle}
-                                disabled={saving}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={saving}
-                                className="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-gray-900 border border-transparent rounded-md shadow-sm hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 disabled:opacity-50"
-                            >
-                                {saving ? 'Saving...' : 'Save Changes'}
-                            </button>
-                        </div>
-                    </form>
-                )}
-            </div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '300px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+          <div style={{
+            width: '32px', height: '32px', border: '2px solid var(--cream-border)',
+            borderTopColor: 'var(--amber)', borderRadius: '50%',
+            animation: 'spin 0.8s linear infinite',
+          }} />
+          <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Loading profile...</p>
         </div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
     );
+  }
+
+  return (
+    <div className="animate-fade-up" style={{ maxWidth: '700px' }}>
+      {/* Header */}
+      <div style={{ marginBottom: '36px' }}>
+        <div style={{ width: '28px', height: '2px', background: 'var(--amber)', borderRadius: '1px', marginBottom: '12px' }} />
+        <h1 style={{
+          fontFamily: "'Playfair Display', serif",
+          fontSize: '36px', fontWeight: '700', color: 'var(--obsidian)',
+          letterSpacing: '-0.02em', marginBottom: '6px',
+        }}>
+          Profile
+        </h1>
+        <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
+          Manage your personal and academic information.
+        </p>
+      </div>
+
+      {/* Success/Error */}
+      {message.text && (
+        <div style={{
+          padding: '12px 16px', borderRadius: '10px', marginBottom: '20px',
+          fontSize: '13.5px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '8px',
+          background: message.type === 'success' ? '#EEF7F0' : '#FEF2F2',
+          border: `1px solid ${message.type === 'success' ? 'rgba(45,122,74,0.2)' : '#FECACA'}`,
+          color: message.type === 'success' ? '#2D7A4A' : '#B04040',
+        }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            {message.type === 'success'
+              ? <path d="M20 6L9 17l-5-5"/>
+              : <><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></>
+            }
+          </svg>
+          {message.text}
+        </div>
+      )}
+
+      <div className="foundry-card" style={{ overflow: 'hidden' }}>
+        {/* Profile banner */}
+        <div style={{
+          background: 'var(--obsidian)', padding: '32px',
+          position: 'relative', overflow: 'hidden',
+        }}>
+          {/* Background grid */}
+          <div style={{
+            position: 'absolute', inset: 0,
+            backgroundImage: `linear-gradient(rgba(250,248,243,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(250,248,243,0.03) 1px, transparent 1px)`,
+            backgroundSize: '32px 32px',
+          }} />
+          <div style={{
+            position: 'absolute', bottom: '-40px', right: '-40px',
+            width: '200px', height: '200px', borderRadius: '50%',
+            border: '1px solid rgba(200,134,42,0.15)',
+          }} />
+
+          <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: '20px' }}>
+            {/* Avatar */}
+            <div style={{
+              width: '64px', height: '64px', borderRadius: '50%',
+              background: 'var(--amber)', border: '3px solid rgba(200,134,42,0.3)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: "'Playfair Display', serif",
+              fontSize: '24px', fontWeight: '700', color: 'white',
+              flexShrink: 0,
+            }}>
+              {initials}
+            </div>
+
+            <div style={{ flex: 1 }}>
+              <h2 style={{
+                fontFamily: "'Playfair Display', serif",
+                fontSize: '22px', fontWeight: '700', color: 'var(--cream)',
+                letterSpacing: '-0.01em', marginBottom: '4px',
+              }}>
+                {fullName || 'Your Name'}
+              </h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{ fontSize: '13px', color: 'rgba(250,248,243,0.5)', fontFamily: 'monospace' }}>
+                  {profile.college_roll}
+                </span>
+                <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'rgba(250,248,243,0.2)' }} />
+                <span style={{ fontSize: '13px', color: 'rgba(250,248,243,0.5)' }}>
+                  {profile.department}
+                </span>
+              </div>
+            </div>
+
+            {/* Role badge */}
+            <span style={{
+              padding: '5px 12px', borderRadius: '100px',
+              background: 'rgba(200,134,42,0.2)', border: '1px solid rgba(200,134,42,0.3)',
+              fontSize: '11px', fontWeight: '700', letterSpacing: '0.08em',
+              textTransform: 'uppercase', color: 'var(--amber-light)',
+            }}>
+              {profile.role}
+            </span>
+          </div>
+        </div>
+
+        {/* Content */}
+        {!isEditing ? (
+          <div style={{ padding: '32px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px' }}>
+              <h3 style={{
+                fontFamily: "'Playfair Display', serif",
+                fontSize: '16px', fontWeight: '600', color: 'var(--obsidian)',
+              }}>
+                Account Details
+              </h3>
+              <button
+                onClick={() => { setFormData(profile); setIsEditing(true); }}
+                className="btn-secondary"
+                style={{ fontSize: '12px', padding: '7px 16px', gap: '6px', display: 'flex', alignItems: 'center' }}
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                </svg>
+                Edit Profile
+              </button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '28px' }}>
+              {[
+                { label: 'First Name', value: profile.first_name },
+                { label: 'Middle Name', value: profile.middle_name || '—' },
+                { label: 'Last Name', value: profile.last_name },
+                { label: 'Email Address', value: profile.email, span: 2 },
+                { label: 'Phone', value: profile.phone },
+                { label: 'College Roll', value: profile.college_roll, mono: true },
+                { label: 'Department', value: profile.department, span: 2 },
+              ].map((field, i) => (
+                <div key={i} style={{ gridColumn: (field as any).span ? `span ${(field as any).span}` : 'span 1' }}>
+                  <p style={{
+                    fontSize: '10px', fontWeight: '700', letterSpacing: '0.1em',
+                    textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '6px',
+                  }}>
+                    {field.label}
+                  </p>
+                  <p style={{
+                    fontSize: '14px', color: 'var(--obsidian)', fontWeight: '400',
+                    fontFamily: (field as any).mono ? 'monospace' : 'inherit',
+                  }}>
+                    {field.value || '—'}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <form onSubmit={handleUpdate} style={{ padding: '32px' }}>
+            <div style={{ marginBottom: '28px' }}>
+              <h3 style={{
+                fontFamily: "'Playfair Display', serif",
+                fontSize: '16px', fontWeight: '600', color: 'var(--obsidian)', marginBottom: '20px',
+              }}>
+                Edit Profile
+              </h3>
+
+              <p style={{ fontSize: '10px', fontWeight: '700', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--amber)', marginBottom: '14px' }}>
+                Personal
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+                <InputRow label="First Name">
+                  <input required type="text" value={formData.first_name}
+                    onChange={e => setFormData({...formData, first_name: e.target.value})}
+                    className="foundry-input" />
+                </InputRow>
+                <InputRow label="Middle Name">
+                  <input type="text" value={formData.middle_name}
+                    onChange={e => setFormData({...formData, middle_name: e.target.value})}
+                    className="foundry-input" />
+                </InputRow>
+                <InputRow label="Last Name">
+                  <input required type="text" value={formData.last_name}
+                    onChange={e => setFormData({...formData, last_name: e.target.value})}
+                    className="foundry-input" />
+                </InputRow>
+              </div>
+
+              <div style={{ height: '1px', background: 'var(--cream-border)', margin: '20px 0' }} />
+
+              <p style={{ fontSize: '10px', fontWeight: '700', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--amber)', marginBottom: '14px' }}>
+                Contact & Academic
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                <InputRow label="Phone">
+                  <input required type="tel" value={formData.phone}
+                    onChange={e => setFormData({...formData, phone: e.target.value})}
+                    className="foundry-input" />
+                </InputRow>
+                <InputRow label="Email Address">
+                  <input type="email" disabled value={formData.email} className="foundry-input" />
+                </InputRow>
+                <InputRow label="College Roll">
+                  <input required type="text" value={formData.college_roll}
+                    onChange={e => setFormData({...formData, college_roll: e.target.value})}
+                    className="foundry-input" style={{ fontFamily: 'monospace', fontWeight: '500' }} />
+                </InputRow>
+                <InputRow label="Department">
+                  <input required type="text" value={formData.department}
+                    onChange={e => setFormData({...formData, department: e.target.value})}
+                    className="foundry-input" />
+                </InputRow>
+              </div>
+            </div>
+
+            <div style={{
+              display: 'flex', justifyContent: 'flex-end', gap: '10px',
+              paddingTop: '20px', borderTop: '1px solid var(--cream-border)',
+            }}>
+              <button type="button" onClick={() => setIsEditing(false)} disabled={saving} className="btn-secondary">
+                Cancel
+              </button>
+              <button type="submit" disabled={saving} className="btn-primary" style={{ minWidth: '120px' }}>
+                {saving ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
 }
