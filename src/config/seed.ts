@@ -1,15 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
 
+// Get the moderator details from environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
-const serviceRoleKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY || "";
-const moderatorEmail = import.meta.env.MODERATOR_EMAIL || "";
-const moderatorPassword = import.meta.env.MODERATOR_PASSWORD || "";
-const moderatorFirstName = import.meta.env.MODERATOR_FIRST_NAME || "";
-const moderatorLastName = import.meta.env.MODERATOR_LAST_NAME || "";
-const moderatorPhone = import.meta.env.MODERATOR_PHONE || "";
-const moderatorCollegeRoll = import.meta.env.MODERATOR_COLLEGE_ROLL || "";
-const moderatorDepartment = import.meta.env.MODERATOR_DEPARTMENT || "";
+const serviceRoleKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || "";
+const moderatorEmail = import.meta.env.VITE_MODERATOR_EMAIL || "";
+const moderatorPassword = import.meta.env.VITE_MODERATOR_PASSWORD || "";
+const moderatorFirstName = import.meta.env.VITE_MODERATOR_FIRST_NAME || "";
+const moderatorLastName = import.meta.env.VITE_MODERATOR_LAST_NAME || "";
+const moderatorPhone = import.meta.env.VITE_MODERATOR_PHONE || "";
+const moderatorCollegeRoll = import.meta.env.VITE_MODERATOR_COLLEGE_ROLL || "";
+const moderatorDepartment = import.meta.env.VITE_MODERATOR_DEPARTMENT || "";
 
+// Initialize Supabase client with service role key for moderator operations
 const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
   auth: {
     autoRefreshToken: false,
@@ -17,6 +19,7 @@ const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
   }
 });
 
+// Function to seed the moderator user
 async function seedModerator() {
 
   const { data, error } = await supabaseAdmin.auth.admin.createUser({
@@ -27,7 +30,7 @@ async function seedModerator() {
       first_name: moderatorFirstName,
       last_name: moderatorLastName,
       phone: moderatorPhone,
-      middle_name: null,      // Optional
+      middle_name: null,
       college_roll: moderatorCollegeRoll,
       department: moderatorDepartment,
       role: 'MODERATOR'    

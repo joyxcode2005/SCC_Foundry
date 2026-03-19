@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '../config'; 
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react'; 
+import toast from 'react-hot-toast';
 
 export default function Login() {
     const [collegeRoll, setCollegeRoll] = useState('');
@@ -40,7 +41,8 @@ export default function Login() {
             setLoading(false);
             return;
         }
-
+        
+        toast.success('Logged in successfully!');
         navigate('/dashboard');
     };
 
