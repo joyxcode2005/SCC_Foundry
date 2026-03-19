@@ -6,6 +6,13 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || "";
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const moderatorEmail = process.env.MODERATOR_EMAIL || "";
+const moderatorPassword = process.env.MODERATOR_PASSWORD || "";
+const moderatorFirstName = process.env.MODERATOR_FIRST_NAME || "";
+const moderatorLastName = process.env.MODERATOR_LAST_NAME || "";
+const moderatorPhone = process.env.MODERATOR_PHONE || "";
+const moderatorCollegeRoll = process.env.MODERATOR_COLLEGE_ROLL || "";
+const moderatorDepartment = process.env.MODERATOR_DEPARTMENT || "";
 
 const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
   auth: {
@@ -17,17 +24,17 @@ const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
 async function seedModerator() {
 
   const { data, error } = await supabaseAdmin.auth.admin.createUser({
-    email: 'joysengupta252005@gmail.com',
-    password: 'joy.foundry@2005',
+    email: moderatorEmail,
+    password: moderatorPassword,
     email_confirm: true,
     user_metadata: {
-      first_name: 'Joy',
-      last_name: 'Sengupta',
-      phone: '8777699459',
+      first_name: moderatorFirstName,
+      last_name: moderatorLastName,
+      phone: moderatorPhone,
       middle_name: null,      // Optional
-      college_roll: 'CMSM23M182',
-      department: 'Computer Science',
-      role: 'MODERATOR'       // Must exist in your public.user_role enum
+      college_roll: moderatorCollegeRoll,
+      department: moderatorDepartment,
+      role: 'MODERATOR'    
     }
   });
 
