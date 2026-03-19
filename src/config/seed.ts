@@ -1,18 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
-import * as dotenv from 'dotenv';
-import * as path from 'path';
 
-dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
-
-const supabaseUrl = process.env.VITE_SUPABASE_URL || "";
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-const moderatorEmail = process.env.MODERATOR_EMAIL || "";
-const moderatorPassword = process.env.MODERATOR_PASSWORD || "";
-const moderatorFirstName = process.env.MODERATOR_FIRST_NAME || "";
-const moderatorLastName = process.env.MODERATOR_LAST_NAME || "";
-const moderatorPhone = process.env.MODERATOR_PHONE || "";
-const moderatorCollegeRoll = process.env.MODERATOR_COLLEGE_ROLL || "";
-const moderatorDepartment = process.env.MODERATOR_DEPARTMENT || "";
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
+const serviceRoleKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const moderatorEmail = import.meta.env.MODERATOR_EMAIL || "";
+const moderatorPassword = import.meta.env.MODERATOR_PASSWORD || "";
+const moderatorFirstName = import.meta.env.MODERATOR_FIRST_NAME || "";
+const moderatorLastName = import.meta.env.MODERATOR_LAST_NAME || "";
+const moderatorPhone = import.meta.env.MODERATOR_PHONE || "";
+const moderatorCollegeRoll = import.meta.env.MODERATOR_COLLEGE_ROLL || "";
+const moderatorDepartment = import.meta.env.MODERATOR_DEPARTMENT || "";
 
 const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
   auth: {

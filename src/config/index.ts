@@ -1,10 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
-import dotenv from 'dotenv';
-
-dotenv.config({ path: '.env.local' });
 
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || '';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '';
+
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
