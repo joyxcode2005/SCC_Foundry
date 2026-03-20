@@ -1,5 +1,3 @@
-
-
 export const medalEmoji: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' };
 export const medalBg: Record<number, string> = { 1: '#FDF3E0', 2: '#F4F5F6', 3: '#F6EFE9' };
 

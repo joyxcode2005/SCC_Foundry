@@ -72,3 +72,11 @@ export interface TaskProps {
 
 
 export type FilterType = 'All' | 'Pending' | 'In Progress' | 'Completed';
+
+export interface ProjectCardProps {
+    project: any; // Ideally replace 'any' with your Project type
+    isCompleted: boolean;
+    isModerator: boolean;
+    handleEdit: (e: React.MouseEvent, project: any) => void; // Adjust type as needed
+    // handleDelete: (e: React.MouseEvent, id: string) => void;
+}

@@ -1,12 +1,22 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../config";
 import type { ProjectProps } from "../config/types";
 import CreateProject from "../components/CreateProject";
+import toast from "react-hot-toast";
+import EditProject from "../components/EditProject";
+import ProjectCard from "../components/ProjectCard";
 
 export default function Projects({ projects = [], loading = false }: ProjectProps) {
-  // State to toggle between the list and the form
-  const [currentView, setCurrentView] = useState<'list' | 'create'>('list');
+  // View and Role State
+  const [currentView, setCurrentView] = useState<'list' | 'create' | 'edit'>('list');
   const [userRole, setUserRole] = useState<string | null>(null);
+
+  // Data State
+  const [projectData, setProjectData] = useState<ProjectProps["projects"]>(projects);
+  const [isFetching, setIsFetching] = useState(loading);
+
+  // Track which project is being edited
+  const [editingProject, setEditingProject] = useState<any>(null);
 
   useEffect(() => {
     async function getRole() {
@@ -19,22 +29,89 @@ export default function Projects({ projects = [], loading = false }: ProjectProp
     getRole();
   }, []);
 
+  const fetchProjectData = useCallback(async () => {
+    setIsFetching(true);
+    const { data, error } = await supabase
+      .from("projects")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error || !data) {
+      toast.error("Failed to load projects.");
+    } else {
+      setProjectData(data);
+    }
+    setIsFetching(false);
+  }, []);
+
+  useEffect(() => {
+    fetchProjectData();
+  }, [fetchProjectData]);
+
   const isModerator = userRole === "MODERATOR";
 
-  // If the view is 'create', SHOW THE FORM INSTEAD
+  const handleProjectSuccess = () => {
+    setCurrentView('list');
+    setEditingProject(null);
+    fetchProjectData();
+  };
+
+  // const handleDelete = async (e: React.MouseEvent, id: string) => {
+  //   e.stopPropagation(); // Prevent card click if you have one
+
+  //   if (!window.confirm("Are you sure you want to delete this project? This cannot be undone.")) {
+  //     return;
+  //   }
+
+  //   const toastId = toast.loading("Deleting project...");
+  //   const { error } = await supabase.from("projects").delete().eq("id", id);
+
+  //   if (error) {
+  //     toast.error("Failed to delete project.", { id: toastId });
+  //   } else {
+  //     toast.success("Project deleted successfully.", { id: toastId });
+  //     fetchProjectData();
+  //   }
+  // };
+
+  const handleEdit = (e: React.MouseEvent, project: any) => {
+    e.stopPropagation();
+    setEditingProject(project);
+    setCurrentView('edit');
+  };
+
+  // VIEWS
   if (currentView === 'create') {
     return (
       <div className="animate-fade-up">
-        {/* Pass functions to go back to the list view */}
         <CreateProject
-          onSuccess={() => setCurrentView('list')}
+          onSuccess={handleProjectSuccess}
           onCancel={() => setCurrentView('list')}
         />
       </div>
     );
   }
 
-  // OTHERWISE, SHOW THE LIST
+  if (currentView === 'edit' && editingProject) {
+    return (
+      <div className="animate-fade-up">
+        <EditProject
+          project={editingProject}
+          onSuccess={handleProjectSuccess}
+          onCancel={() => {
+            setCurrentView('list');
+            setEditingProject(null);
+          }}
+        />
+      </div>
+    );
+  }
+
+  const safeProjectData = projectData ?? [];
+  const activeCount = safeProjectData.filter(p => p.status === 'Active').length;
+  const completedCount = safeProjectData.filter(p => p.status === 'Completed').length;
+
+  // LIST VIEW
   return (
     <div className="animate-fade-up relative">
       {/* Header */}
@@ -46,13 +123,13 @@ export default function Projects({ projects = [], loading = false }: ProjectProp
               Projects
             </h1>
             <p className="text-sm text-[var(--text-muted)]">
-              {projects.filter(p => p.status === 'Active').length} active · {projects.filter(p => p.status === 'Completed').length} completed
+              {activeCount} active · {completedCount} completed
             </p>
           </div>
 
           {isModerator && (
             <button
-              onClick={() => setCurrentView('create')} // Swap view here
+              onClick={() => setCurrentView('create')}
               className="btn-primary flex items-center gap-[7px]"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -66,40 +143,30 @@ export default function Projects({ projects = [], loading = false }: ProjectProp
 
       {/* Grid */}
       <div className="animate-fade-up-delay-1 grid grid-cols-2 gap-[18px]">
-        {loading ? (
+        {isFetching ? (
           [1, 2, 3, 4].map(i => (
             <div key={i} className="skeleton h-[260px] rounded-2xl" />
           ))
         ) : (
           <>
-            {projects.map((project) => {
-              const isCompleted = project.status === 'Completed';
-              return (
-                <div key={project.id} className="foundry-card p-0 overflow-hidden cursor-pointer">
-                  <div className={`h-[3px] bg-gradient-to-r ${isCompleted ? 'from-[#2D7A4A] to-[#4A9A6A]' : 'from-[var(--amber)] to-[var(--amber-light)]'}`} />
-                  <div className="p-6">
-                    <h3 className="font-['Playfair_Display',_serif] text-[17px] font-semibold text-[var(--obsidian)] leading-[1.3] mb-2">
-                      {project.title}
-                    </h3>
-                    <p className="text-[13px] text-[var(--text-secondary)] line-clamp-2">{project.description}</p>
-                  </div>
-                </div>
-              );
-            })}
-
-            {isModerator && (
-              <div
-                onClick={() => setCurrentView('create')} // Swap view here
-                className="border-2 border-dashed border-[var(--cream-border)] rounded-2xl flex flex-col items-center justify-center py-12 px-6 cursor-pointer transition-all duration-200 min-h-[200px] hover:border-[var(--amber)] hover:bg-[var(--amber-pale)]"
-              >
-                <div className="w-10 h-10 rounded-[10px] bg-[var(--cream)] border border-[var(--cream-border)] flex items-center justify-center mb-3">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2">
-                    <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
-                </div>
-                <p className="text-sm font-semibold text-[var(--text-secondary)] mb-1">Start a New Project</p>
-                <p className="text-xs text-[var(--text-muted)] text-center">Collaborate with peers and build something great.</p>
+            {safeProjectData.length === 0 ? (
+              <div className="col-span-2 py-16 text-center border border-dashed border-[var(--cream-border)] rounded-2xl bg-[var(--cream)]">
+                <p className="text-[var(--text-muted)] font-medium">No projects available.</p>
               </div>
+            ) : (
+              safeProjectData.map((project) => {
+                const isCompleted = project.status === 'Completed';
+                return (
+                  <ProjectCard
+                    key={project.id}
+                    project={project}
+                    isCompleted={isCompleted}
+                    isModerator={isModerator}
+                    handleEdit={handleEdit}
+                    // handleDelete={handleDelete}
+                  />
+                );
+              })
             )}
           </>
         )}
