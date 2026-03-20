@@ -24,15 +24,19 @@ export interface UserProfile {
 }
 
 export interface Project {
-    id: number | string;
+    id: string; // Changed to string because your schema uses UUID
     title: string;
-    course: string;
-    desc: string;
-    members: string[];   // initials or names
-    progress: number;    // 0–100
-    status: 'Active' | 'Completed';
-    due: string;
-    tags: string[];
+    description: string | null; // Matches 'description' in SQL
+    created_by: string | null; // UUID of the user who created it
+    drive_url: string | null;
+    created_at: string;
+    updated_at: string;
+    course?: string;
+    members?: string[];   // Suggestion: Create a 'project_members' join table later
+    progress?: number;    // 0–100
+    status?: 'Active' | 'Completed';
+    due?: string;         // Suggestion: Add a 'due_date' column to your SQL
+    tags?: string[];
 }
 
 
@@ -52,18 +56,18 @@ export interface InputFieldProps {
 }
 
 export interface Task {
-  id: number | string;
-  title: string;
-  course: string;
-  due: string;
-  priority: 'High' | 'Medium' | 'Low';
-  status: 'Pending' | 'In Progress' | 'Completed';
-  points: number;
+    id: number | string;
+    title: string;
+    course: string;
+    due: string;
+    priority: 'High' | 'Medium' | 'Low';
+    status: 'Pending' | 'In Progress' | 'Completed';
+    points: number;
 }
 
 export interface TaskProps {
-  tasks?: Task[];
-  loading?: boolean;
+    tasks?: Task[];
+    loading?: boolean;
 }
 
 
