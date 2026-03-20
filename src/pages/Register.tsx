@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { supabase } from "../config";
 import { Link } from "react-router-dom";
+import InputField from "../components/InputField";
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -43,189 +44,128 @@ export default function Register() {
     setLoading(false);
   };
 
-  const InputField = ({ label, name, type = 'text', required = false, placeholder = '', style = {} }: any) => (
-    <div>
-      <label style={{
-        display: 'block', fontSize: '12px', fontWeight: '600',
-        color: 'var(--text-secondary)', marginBottom: '6px', letterSpacing: '0.03em',
-      }}>
-        {label}{required && <span style={{ color: 'var(--amber)', marginLeft: '2px' }}>*</span>}
-      </label>
-      <input
-        type={type} name={name} required={required}
-        placeholder={placeholder} onChange={handleChange}
-        className="foundry-input" style={style}
-      />
-    </div>
-  );
+
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--cream)', display: 'flex' }}>
+    <div className="min-h-screen bg-[var(--cream)] flex">
       {/* Thin left accent */}
-      <div style={{
-        width: '4px', background: 'linear-gradient(to bottom, var(--amber), transparent)',
-        flexShrink: 0,
-      }} />
+      <div className="w-1 bg-gradient-to-b from-[var(--amber)] to-transparent shrink-0" />
 
-      <div style={{
-        flex: 1, display: 'flex', alignItems: 'flex-start',
-        justifyContent: 'center', padding: '64px 48px',
-      }}>
-        <div className="animate-scale-in" style={{ width: '100%', maxWidth: '600px' }}>
+      <div className="flex-1 flex items-start justify-center py-16 px-12">
+        <div className="animate-scale-in w-full max-w-[600px]">
           {/* Header */}
-          <div style={{ marginBottom: '48px' }}>
-            <Link to="/login" style={{
-              display: 'inline-flex', alignItems: 'center', gap: '6px',
-              fontSize: '12px', fontWeight: '500', color: 'var(--text-muted)',
-              textDecoration: 'none', marginBottom: '32px',
-              transition: 'color 0.15s',
-            }}>
+          <div className="mb-12">
+            <Link to="/login" className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--text-muted)] no-underline mb-8 transition-colors duration-150 hover:text-[var(--obsidian)]">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M19 12H5M12 19l-7-7 7-7"/>
+                <path d="M19 12H5M12 19l-7-7 7-7" />
               </svg>
               Back to login
             </Link>
 
             {/* Logo */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '32px' }}>
-              <div style={{
-                width: '30px', height: '30px', background: 'var(--obsidian)',
-                borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
+            <div className="flex items-center gap-2.5 mb-8">
+              <div className="w-[30px] h-[30px] bg-[var(--obsidian)] rounded-md flex items-center justify-center">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M2 2h4v4H2V2zM8 2h4v4H8V2zM2 8h4v4H2V8zM8 8h4v4H8V8z" fill="var(--cream)" fillOpacity="0.9"/>
+                  <path d="M2 2h4v4H2V2zM8 2h4v4H8V2zM2 8h4v4H2V8zM8 8h4v4H8V8z" fill="var(--cream)" fillOpacity="0.9" />
                 </svg>
               </div>
-              <span style={{
-                fontFamily: "'Playfair Display', serif", fontSize: "18px",
-                fontWeight: "700", color: "var(--obsidian)", letterSpacing: "-0.02em",
-              }}>Foundry</span>
+              <span className="font-['Playfair_Display',_serif] text-lg font-bold text-[var(--obsidian)] tracking-[-0.02em]">
+                Foundry
+              </span>
             </div>
 
-            <div style={{ width: '28px', height: '2px', background: 'var(--amber)', borderRadius: '1px', marginBottom: '16px' }} />
-            <h1 style={{
-              fontFamily: "'Playfair Display', serif",
-              fontSize: '36px', fontWeight: '700', color: 'var(--obsidian)',
-              letterSpacing: '-0.02em', lineHeight: '1.2', marginBottom: '8px',
-            }}>
+            <div className="w-7 h-0.5 bg-[var(--amber)] rounded-[1px] mb-4" />
+            <h1 className="font-['Playfair_Display',_serif] text-4xl font-bold text-[var(--obsidian)] tracking-[-0.02em] leading-[1.2] mb-2">
               Join Foundry
             </h1>
-            <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: '1.6' }}>
+            <p className="text-sm text-[var(--text-muted)] leading-[1.6]">
               Create your student account to get started.
             </p>
           </div>
 
           {success ? (
-            <div style={{
-              padding: '32px', background: 'white', borderRadius: '16px',
-              border: '1px solid var(--cream-border)', textAlign: 'center',
-              boxShadow: 'var(--shadow-md)',
-            }}>
-              <div style={{
-                width: '52px', height: '52px', background: '#EEF7F0',
-                borderRadius: '50%', display: 'flex', alignItems: 'center',
-                justifyContent: 'center', margin: '0 auto 20px',
-              }}>
+            <div className="p-8 bg-white rounded-2xl border border-[var(--cream-border)] text-center shadow-md">
+              <div className="w-[52px] h-[52px] bg-[#EEF7F0] rounded-full flex items-center justify-center mx-auto mb-5">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2D7A4A" strokeWidth="2.5" strokeLinecap="round">
-                  <path d="M20 6L9 17l-5-5"/>
+                  <path d="M20 6L9 17l-5-5" />
                 </svg>
               </div>
-              <h3 style={{
-                fontFamily: "'Playfair Display', serif", fontSize: '22px',
-                fontWeight: '600', color: 'var(--obsidian)', marginBottom: '10px',
-              }}>
+              <h3 className="font-['Playfair_Display',_serif] text-[22px] font-semibold text-[var(--obsidian)] mb-2.5">
                 Account created!
               </h3>
-              <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: '1.6', marginBottom: '24px' }}>
+              <p className="text-sm text-[var(--text-muted)] leading-[1.6] mb-6">
                 Please check your email to verify your account before signing in.
               </p>
-              <Link to="/login" className="btn-primary" style={{ textDecoration: 'none' }}>
+              <Link to="/login" className="btn-primary no-underline">
                 Go to Sign In
               </Link>
             </div>
           ) : (
-            <div style={{
-              background: 'white', borderRadius: '16px',
-              border: '1px solid var(--cream-border)',
-              boxShadow: 'var(--shadow-md)', overflow: 'hidden',
-            }}>
+            <div className="bg-white rounded-2xl border border-[var(--cream-border)] shadow-md overflow-hidden">
               {error && (
-                <div style={{
-                  padding: '14px 24px', background: '#FEF2F2',
-                  borderBottom: '1px solid #FECACA',
-                  fontSize: '13.5px', color: '#B04040',
-                  display: 'flex', alignItems: 'center', gap: '8px',
-                }}>
+                <div className="py-3.5 px-6 bg-[#FEF2F2] border-b border-[#FECACA] text-[13.5px] text-[#B04040] flex items-center gap-2">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                    <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
                   </svg>
                   {error}
                 </div>
               )}
 
-              <form onSubmit={handleRegister} style={{ padding: '32px' }}>
+              <form onSubmit={handleRegister} className="p-8">
                 {/* Step sections */}
-                <div style={{ marginBottom: '28px' }}>
-                  <p style={{
-                    fontSize: '10px', fontWeight: '700', letterSpacing: '0.12em',
-                    textTransform: 'uppercase', color: 'var(--amber)', marginBottom: '16px',
-                  }}>
+                <div className="mb-7">
+                  <p className="text-[10px] font-bold tracking-[0.12em] uppercase text-[var(--amber)] mb-4">
                     Personal Information
                   </p>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
-                    <InputField label="First Name" name="firstName" required />
-                    <InputField label="Middle Name" name="middleName" />
-                    <InputField label="Last Name" name="lastName" required />
+                  <div className="grid grid-cols-3 gap-4">
+                    <InputField onChange={handleChange} label="First Name" name="firstName" required />
+                    <InputField onChange={handleChange} label="Middle Name" name="middleName" />
+                    <InputField onChange={handleChange} label="Last Name" name="lastName" required />
                   </div>
                 </div>
 
-                <div style={{ height: '1px', background: 'var(--cream-border)', margin: '24px 0' }} />
+                <div className="h-px bg-[var(--cream-border)] my-6" />
 
-                <div style={{ marginBottom: '28px' }}>
-                  <p style={{
-                    fontSize: '10px', fontWeight: '700', letterSpacing: '0.12em',
-                    textTransform: 'uppercase', color: 'var(--amber)', marginBottom: '16px',
-                  }}>
+                <div className="mb-7">
+                  <p className="text-[10px] font-bold tracking-[0.12em] uppercase text-[var(--amber)] mb-4">
                     Academic Details
                   </p>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
-                    <InputField label="College Roll" name="collegeRoll" required placeholder="21CS01"
-                      style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '500' }} />
-                    <InputField label="Department" name="department" required placeholder="Computer Science" />
-                    <InputField label="Phone" name="phone" type="tel" required />
+                  <div className="grid grid-cols-3 gap-4">
+                    <InputField onChange={handleChange}
+                      label="College Roll"
+                      name="collegeRoll"
+                      required
+                      placeholder="21CS01"
+                      customClass="uppercase tracking-[0.05em] font-medium"
+                    />
+                    <InputField onChange={handleChange} label="Department" name="department" required placeholder="Computer Science" />
+                    <InputField onChange={handleChange} label="Phone" name="phone" type="tel" required />
                   </div>
                 </div>
 
-                <div style={{ height: '1px', background: 'var(--cream-border)', margin: '24px 0' }} />
+                <div className="h-px bg-[var(--cream-border)] my-6" />
 
-                <div style={{ marginBottom: '32px' }}>
-                  <p style={{
-                    fontSize: '10px', fontWeight: '700', letterSpacing: '0.12em',
-                    textTransform: 'uppercase', color: 'var(--amber)', marginBottom: '16px',
-                  }}>
+                <div className="mb-8">
+                  <p className="text-[10px] font-bold tracking-[0.12em] uppercase text-[var(--amber)] mb-4">
                     Account Credentials
                   </p>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                    <InputField label="Email Address" name="email" type="email" required />
-                    <InputField label="Password" name="password" type="password" required />
+                  <div className="grid grid-cols-2 gap-4">
+                    <InputField onChange={handleChange} label="Email Address" name="email" type="email" required />
+                    <InputField onChange={handleChange} label="Password" name="password" type="password" required />
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                <div className="flex items-center justify-between">
+                  <p className="text-[13px] text-[var(--text-muted)]">
                     Already have an account?{' '}
-                    <Link to="/login" style={{
-                      color: 'var(--obsidian)', fontWeight: '600',
-                      textDecoration: 'none', borderBottom: '1px solid var(--obsidian)', paddingBottom: '1px',
-                    }}>
+                    <Link to="/login" className="text-[var(--obsidian)] font-semibold no-underline border-b border-[var(--obsidian)] pb-[1px]">
                       Sign in
                     </Link>
                   </p>
                   <button
                     type="submit"
                     disabled={loading}
-                    className="btn-primary"
-                    style={{ height: '42px', paddingLeft: '28px', paddingRight: '28px' }}
+                    className="btn-primary h-[42px] px-7"
                   >
                     {loading ? 'Creating...' : 'Create Account'}
                   </button>

@@ -1,36 +1,8 @@
-import { useState } from 'react';
+import { useState } from "react";
+import { priorityColors, statusConfig, } from "../config/constants";
+import type { FilterType, TaskProps } from "../config/types";
 
-// Types for real data
-export interface Task {
-  id: number | string;
-  title: string;
-  course: string;
-  due: string;
-  priority: 'High' | 'Medium' | 'Low';
-  status: 'Pending' | 'In Progress' | 'Completed';
-  points: number;
-}
-
-const priorityColors: Record<string, { text: string; bg: string; border: string }> = {
-  High:   { text: '#B04040', bg: '#FEF2F2', border: 'rgba(176,64,64,0.2)' },
-  Medium: { text: '#8B6A00', bg: '#FEFCE8', border: 'rgba(139,106,0,0.2)' },
-  Low:    { text: '#2D7A4A', bg: '#EEF7F0', border: 'rgba(45,122,74,0.2)' },
-};
-
-const statusConfig: Record<string, { color: string; bg: string }> = {
-  Pending:       { color: 'var(--text-muted)', bg: 'var(--cream)' },
-  'In Progress': { color: '#1A6FA8', bg: '#EFF8FF' },
-  Completed:     { color: '#2D7A4A', bg: '#EEF7F0' },
-};
-
-type FilterType = 'All' | 'Pending' | 'In Progress' | 'Completed';
-
-interface Props {
-  tasks?: Task[];
-  loading?: boolean;
-}
-
-export default function Tasks({ tasks = [], loading = false }: Props) {
+export default function Tasks({ tasks = [], loading = false }: TaskProps) {
   const [filter, setFilter] = useState<FilterType>('All');
 
   const filtered = filter === 'All' ? tasks : tasks.filter(t => t.status === filter);
@@ -45,24 +17,20 @@ export default function Tasks({ tasks = [], loading = false }: Props) {
   return (
     <div className="animate-fade-up">
       {/* Header */}
-      <div style={{ marginBottom: '36px' }}>
-        <div style={{ width: '28px', height: '2px', background: 'var(--amber)', borderRadius: '1px', marginBottom: '12px' }} />
-        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+      <div className="mb-9">
+        <div className="w-7 h-0.5 bg-[var(--amber)] rounded-[1px] mb-3" />
+        <div className="flex items-end justify-between">
           <div>
-            <h1 style={{
-              fontFamily: "'Playfair Display', serif",
-              fontSize: '36px', fontWeight: '700', color: 'var(--obsidian)',
-              letterSpacing: '-0.02em', marginBottom: '6px',
-            }}>
+            <h1 className="font-['Playfair_Display',_serif] text-4xl font-bold text-[var(--obsidian)] tracking-[-0.02em] mb-1.5">
               Tasks
             </h1>
-            <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
+            <p className="text-sm text-[var(--text-muted)]">
               {counts.Pending} pending · {counts['In Progress']} in progress
             </p>
           </div>
-          <button className="btn-primary" style={{ gap: '7px', display: 'flex', alignItems: 'center' }}>
+          <button className="btn-primary flex items-center gap-[7px]">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
             </svg>
             New Task
           </button>
@@ -70,25 +38,21 @@ export default function Tasks({ tasks = [], loading = false }: Props) {
       </div>
 
       {/* Filter Tabs */}
-      <div className="animate-fade-up-delay-1" style={{
-        display: 'flex', gap: '4px', background: 'white',
-        border: '1px solid var(--cream-border)', borderRadius: '10px',
-        padding: '4px', marginBottom: '24px', width: 'fit-content',
-      }}>
+      <div className="animate-fade-up-delay-1 flex gap-1 bg-white border border-[var(--cream-border)] rounded-[10px] p-1 mb-6 w-fit">
         {(['All', 'Pending', 'In Progress', 'Completed'] as FilterType[]).map(f => (
-          <button key={f} onClick={() => setFilter(f)} style={{
-            padding: '7px 16px', borderRadius: '7px', border: 'none', cursor: 'pointer',
-            fontSize: '13px', fontWeight: filter === f ? '600' : '400',
-            color: filter === f ? 'var(--obsidian)' : 'var(--text-muted)',
-            background: filter === f ? 'var(--cream)' : 'transparent',
-            transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: '6px',
-          }}>
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`px-4 py-[7px] rounded-[7px] border-none cursor-pointer text-[13px] transition-all duration-150 flex items-center gap-1.5 ${filter === f
+                ? 'font-semibold text-[var(--obsidian)] bg-[var(--cream)]'
+                : 'font-normal text-[var(--text-muted)] bg-transparent'
+              }`}
+          >
             {f}
-            <span style={{
-              fontSize: '10px', fontWeight: '700', padding: '1px 6px', borderRadius: '100px',
-              background: filter === f ? 'var(--amber-pale)' : 'transparent',
-              color: filter === f ? 'var(--amber)' : 'var(--text-muted)',
-            }}>
+            <span className={`text-[10px] font-bold px-1.5 py-[1px] rounded-full ${filter === f
+                ? 'bg-[var(--amber-pale)] text-[var(--amber)]'
+                : 'bg-transparent text-[var(--text-muted)]'
+              }`}>
               {counts[f]}
             </span>
           </button>
@@ -96,23 +60,18 @@ export default function Tasks({ tasks = [], loading = false }: Props) {
       </div>
 
       {/* Task List */}
-      <div className="animate-fade-up-delay-2" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <div className="animate-fade-up-delay-2 flex flex-col gap-2.5">
         {loading ? (
           [1, 2, 3, 4].map(i => (
-            <div key={i} className="skeleton" style={{ height: '72px', borderRadius: '12px' }} />
+            <div key={i} className="skeleton h-[72px] rounded-xl" />
           ))
         ) : filtered.length === 0 ? (
-          <div style={{
-            display: 'flex', flexDirection: 'column', alignItems: 'center',
-            justifyContent: 'center', padding: '64px 24px',
-            background: 'white', border: '1px solid var(--cream-border)',
-            borderRadius: '16px', color: 'var(--text-muted)',
-          }}>
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ marginBottom: '12px', opacity: 0.4 }}>
-              <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+          <div className="flex flex-col items-center justify-center py-16 px-6 bg-white border border-[var(--cream-border)] rounded-2xl text-[var(--text-muted)]">
+            <svg className="mb-3 opacity-40" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
             </svg>
-            <p style={{ fontSize: '14px', fontWeight: '500' }}>No tasks found</p>
-            <p style={{ fontSize: '12px', marginTop: '4px' }}>
+            <p className="text-sm font-medium">No tasks found</p>
+            <p className="text-xs mt-1">
               {filter === 'All' ? 'Tasks assigned to you will appear here.' : `No ${filter.toLowerCase()} tasks.`}
             </p>
           </div>
@@ -121,47 +80,49 @@ export default function Tasks({ tasks = [], loading = false }: Props) {
             const p = priorityColors[task.priority];
             const s = statusConfig[task.status];
             const isCompleted = task.status === 'Completed';
+
             return (
-              <div key={task.id} className="foundry-card" style={{
-                padding: '20px 24px', display: 'flex', alignItems: 'center', gap: '16px',
-                opacity: isCompleted ? 0.65 : 1,
-              }}>
-                <div style={{
-                  width: '20px', height: '20px', borderRadius: '5px', flexShrink: 0,
-                  border: isCompleted ? 'none' : '1.5px solid var(--cream-border)',
-                  background: isCompleted ? 'var(--obsidian)' : 'white',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
+              <div
+                key={task.id}
+                className={`foundry-card px-6 py-5 flex items-center gap-4 ${isCompleted ? 'opacity-65' : 'opacity-100'}`}
+              >
+                <div className={`w-5 h-5 rounded-[5px] shrink-0 flex items-center justify-center ${isCompleted ? 'border-none bg-[var(--obsidian)]' : 'border-[1.5px] border-[var(--cream-border)] bg-white'
+                  }`}>
                   {isCompleted && (
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--cream)" strokeWidth="3" strokeLinecap="round">
-                      <path d="M20 6L9 17l-5-5"/>
+                      <path d="M20 6L9 17l-5-5" />
                     </svg>
                   )}
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '14px', fontWeight: '500', color: 'var(--obsidian)', textDecoration: isCompleted ? 'line-through' : 'none' }}>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2.5 mb-1">
+                    <span className={`text-sm font-medium text-[var(--obsidian)] ${isCompleted ? 'line-through' : 'no-underline'}`}>
                       {task.title}
                     </span>
-                    <span style={{
-                      fontSize: '10px', fontWeight: '700', letterSpacing: '0.06em', textTransform: 'uppercase',
-                      padding: '2px 8px', borderRadius: '100px',
-                      color: p.text, background: p.bg, border: `1px solid ${p.border}`,
-                    }}>
+                    <span
+                      className="text-[10px] font-bold tracking-[0.06em] uppercase px-2 py-0.5 rounded-full border border-solid"
+                      style={{ color: p.text, backgroundColor: p.bg, borderColor: p.border }}
+                    >
                       {task.priority}
                     </span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500', fontFamily: 'monospace' }}>{task.course}</span>
-                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                  <div className="flex items-center gap-4">
+                    <span className="text-xs text-[var(--text-muted)] font-medium font-mono">{task.course}</span>
+                    <span className="text-xs text-[var(--text-muted)]">
                       Due {new Date(task.due).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </span>
                   </div>
                 </div>
-                <div style={{ padding: '6px 12px', background: 'var(--amber-pale)', borderRadius: '8px', fontSize: '12px', fontWeight: '700', color: 'var(--amber)' }}>
+
+                <div className="px-3 py-1.5 bg-[var(--amber-pale)] rounded-lg text-xs font-bold text-[var(--amber)]">
                   +{task.points} pts
                 </div>
-                <div style={{ padding: '5px 12px', background: s.bg, borderRadius: '8px', fontSize: '12px', fontWeight: '500', color: s.color, minWidth: '90px', textAlign: 'center' }}>
+
+                <div
+                  className="px-3 py-[5px] rounded-lg text-xs font-medium min-w-[90px] text-center"
+                  style={{ backgroundColor: s.bg, color: s.color }}
+                >
                   {task.status}
                 </div>
               </div>

@@ -1,127 +1,106 @@
-// Types for real data
-export interface Project {
-  id: number | string;
-  title: string;
-  course: string;
-  desc: string;
-  members: string[];   // initials or names
-  progress: number;    // 0–100
-  status: 'Active' | 'Completed';
-  due: string;
-  tags: string[];
-}
+import { avatarColors } from "../config/constants";
+import type { ProjectProps } from "../config/types";
 
-const avatarColors = ['#C8862A', '#4A7A5A', '#4A6A9A', '#8A4A7A', '#9A6A4A', '#5A7A8A'];
-
-interface Props {
-  projects?: Project[];
-  loading?: boolean;
-}
-
-export default function Projects({ projects = [], loading = false }: Props) {
+export default function Projects({ projects = [], loading = false }: ProjectProps) {
   return (
     <div className="animate-fade-up">
       {/* Header */}
-      <div style={{ marginBottom: '36px' }}>
-        <div style={{ width: '28px', height: '2px', background: 'var(--amber)', borderRadius: '1px', marginBottom: '12px' }} />
-        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+      <div className="mb-9">
+        <div className="w-7 h-0.5 bg-[var(--amber)] rounded-[1px] mb-3" />
+        <div className="flex items-end justify-between">
           <div>
-            <h1 style={{
-              fontFamily: "'Playfair Display', serif",
-              fontSize: '36px', fontWeight: '700', color: 'var(--obsidian)',
-              letterSpacing: '-0.02em', marginBottom: '6px',
-            }}>
+            <h1 className="font-['Playfair_Display',_serif] text-[36px] font-bold text-[var(--obsidian)] tracking-[-0.02em] mb-1.5">
               Projects
             </h1>
-            <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
+            <p className="text-sm text-[var(--text-muted)]">
               {projects.filter(p => p.status === 'Active').length} active · {projects.filter(p => p.status === 'Completed').length} completed
             </p>
           </div>
-          <button className="btn-primary" style={{ gap: '7px', display: 'flex', alignItems: 'center' }}>
+          <button className="btn-primary flex items-center gap-[7px]">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
             </svg>
             New Project
           </button>
         </div>
       </div>
 
-      <div className="animate-fade-up-delay-1" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '18px' }}>
+      <div className="animate-fade-up-delay-1 grid grid-cols-2 gap-[18px]">
         {loading ? (
           [1, 2, 3, 4].map(i => (
-            <div key={i} className="skeleton" style={{ height: '260px', borderRadius: '16px' }} />
+            <div key={i} className="skeleton h-[260px] rounded-2xl" />
           ))
         ) : (
           <>
             {projects.map((project) => {
               const isCompleted = project.status === 'Completed';
               return (
-                <div key={project.id} className="foundry-card" style={{ padding: '0', overflow: 'hidden', cursor: 'pointer' }}>
-                  <div style={{
-                    height: '3px',
-                    background: isCompleted
-                      ? 'linear-gradient(90deg, #2D7A4A, #4A9A6A)'
-                      : 'linear-gradient(90deg, var(--amber), var(--amber-light))',
-                  }} />
-                  <div style={{ padding: '24px' }}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '12px' }}>
+                <div key={project.id} className="foundry-card p-0 overflow-hidden cursor-pointer">
+                  <div className={`h-[3px] bg-gradient-to-r ${isCompleted
+                      ? 'from-[#2D7A4A] to-[#4A9A6A]'
+                      : 'from-[var(--amber)] to-[var(--amber-light)]'
+                    }`} />
+                  <div className="p-6">
+                    <div className="flex items-start justify-between mb-3">
                       <div>
-                        <span style={{ fontSize: '10px', fontWeight: '600', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
+                        <span className="block text-[10px] font-semibold tracking-[0.1em] uppercase text-[var(--text-muted)] mb-1">
                           {project.course}
                         </span>
-                        <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: '17px', fontWeight: '600', color: 'var(--obsidian)', lineHeight: '1.3' }}>
+                        <h3 className="font-['Playfair_Display',_serif] text-[17px] font-semibold text-[var(--obsidian)] leading-[1.3]">
                           {project.title}
                         </h3>
                       </div>
-                      <span style={{
-                        padding: '4px 10px', borderRadius: '100px', fontSize: '11px', fontWeight: '600', flexShrink: 0, marginLeft: '12px',
-                        background: isCompleted ? '#EEF7F0' : 'var(--amber-pale)',
-                        color: isCompleted ? '#2D7A4A' : 'var(--amber)',
-                      }}>
+                      <span className={`px-2.5 py-1 rounded-full text-[11px] font-semibold shrink-0 ml-3 ${isCompleted ? 'bg-[#EEF7F0] text-[#2D7A4A]' : 'bg-[var(--amber-pale)] text-[var(--amber)]'
+                        }`}>
                         {project.status}
                       </span>
                     </div>
-                    <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '18px' }}>
+
+                    <p className="text-[13px] text-[var(--text-secondary)] leading-[1.6] mb-[18px]">
                       {project.desc}
                     </p>
-                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '18px' }}>
+
+                    <div className="flex gap-1.5 flex-wrap mb-[18px]">
                       {project.tags.map(tag => (
-                        <span key={tag} style={{
-                          padding: '3px 9px', borderRadius: '5px', background: 'var(--cream)',
-                          border: '1px solid var(--cream-border)', fontSize: '11px', fontWeight: '500', color: 'var(--text-secondary)',
-                        }}>
+                        <span key={tag} className="px-[9px] py-[3px] rounded-[5px] bg-[var(--cream)] border border-[var(--cream-border)] text-[11px] font-medium text-[var(--text-secondary)]">
                           {tag}
                         </span>
                       ))}
                     </div>
-                    <div style={{ marginBottom: '16px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                        <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '500' }}>Progress</span>
-                        <span style={{ fontSize: '11px', fontWeight: '700', color: isCompleted ? '#2D7A4A' : 'var(--amber)' }}>{project.progress}%</span>
+
+                    <div className="mb-4">
+                      <div className="flex justify-between mb-1.5">
+                        <span className="text-[11px] text-[var(--text-muted)] font-medium">Progress</span>
+                        <span className={`text-[11px] font-bold ${isCompleted ? 'text-[#2D7A4A]' : 'text-[var(--amber)]'}`}>
+                          {project.progress}%
+                        </span>
                       </div>
-                      <div style={{ height: '5px', background: 'var(--cream-border)', borderRadius: '100px', overflow: 'hidden' }}>
-                        <div style={{
-                          height: '100%', width: `${project.progress}%`, borderRadius: '100px',
-                          background: isCompleted ? 'linear-gradient(90deg, #2D7A4A, #4A9A6A)' : 'linear-gradient(90deg, var(--amber), var(--amber-light))',
-                        }} />
+                      <div className="h-[5px] bg-[var(--cream-border)] rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full bg-gradient-to-r ${isCompleted ? 'from-[#2D7A4A] to-[#4A9A6A]' : 'from-[var(--amber)] to-[var(--amber-light)]'
+                            }`}
+                          style={{ width: `${project.progress}%` }}
+                        />
                       </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <div style={{ display: 'flex' }}>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex">
                         {project.members.map((m, i) => (
-                          <div key={i} title={m} style={{
-                            width: '26px', height: '26px', borderRadius: '50%',
-                            background: avatarColors[i % avatarColors.length],
-                            border: '2px solid white', marginLeft: i > 0 ? '-8px' : '0',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: '9px', fontWeight: '700', color: 'white',
-                            zIndex: project.members.length - i, position: 'relative',
-                          }}>
+                          <div
+                            key={i}
+                            title={m}
+                            className={`w-[26px] h-[26px] rounded-full border-2 border-white flex items-center justify-center text-[9px] font-bold text-white relative ${i > 0 ? '-ml-2' : ''}`}
+                            style={{
+                              background: avatarColors[i % avatarColors.length],
+                              zIndex: project.members.length - i,
+                            }}
+                          >
                             {m.slice(0, 2).toUpperCase()}
                           </div>
                         ))}
                       </div>
-                      <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                      <span className="text-[11px] text-[var(--text-muted)]">
                         Due {new Date(project.due).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </span>
                     </div>
@@ -131,26 +110,14 @@ export default function Projects({ projects = [], loading = false }: Props) {
             })}
 
             {/* New project card */}
-            <div style={{
-              border: '2px dashed var(--cream-border)', borderRadius: '16px',
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              justifyContent: 'center', padding: '48px 24px', cursor: 'pointer',
-              transition: 'all 0.2s', minHeight: '200px',
-            }}
-              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--amber)'; (e.currentTarget as HTMLDivElement).style.background = 'var(--amber-pale)'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--cream-border)'; (e.currentTarget as HTMLDivElement).style.background = 'transparent'; }}
-            >
-              <div style={{
-                width: '40px', height: '40px', borderRadius: '10px',
-                background: 'var(--cream)', border: '1px solid var(--cream-border)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px',
-              }}>
+            <div className="border-2 border-dashed border-[var(--cream-border)] rounded-2xl flex flex-col items-center justify-center py-12 px-6 cursor-pointer transition-all duration-200 min-h-[200px] hover:border-[var(--amber)] hover:bg-[var(--amber-pale)]">
+              <div className="w-10 h-10 rounded-[10px] bg-[var(--cream)] border border-[var(--cream-border)] flex items-center justify-center mb-3">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2">
-                  <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                  <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
                 </svg>
               </div>
-              <p style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '4px' }}>Start a New Project</p>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center' }}>Collaborate with peers and build something great.</p>
+              <p className="text-sm font-semibold text-[var(--text-secondary)] mb-1">Start a New Project</p>
+              <p className="text-xs text-[var(--text-muted)] text-center">Collaborate with peers and build something great.</p>
             </div>
           </>
         )}

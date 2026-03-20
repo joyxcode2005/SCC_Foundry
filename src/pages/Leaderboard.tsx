@@ -1,96 +1,73 @@
-// Types for real data — wire up via Supabase query
-interface Student {
-  rank: number;
-  name: string;
-  roll: string;
-  department: string;
-  points: number;
-  isYou?: boolean;
-}
-
-const medalEmoji: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' };
-const medalBg: Record<number, string> = { 1: '#FDF3E0', 2: '#F4F5F6', 3: '#F6EFE9' };
-const medalColor: Record<number, string> = { 1: '#C8862A', 2: '#9EA4AD', 3: '#8B6244' };
-
-interface Props {
-  students?: Student[];
-  loading?: boolean;
-}
+import EmptyState from "../components/EmptyState";
+import { medalBg, medalEmoji } from "../config/constants";
+import type { Props } from "../config/types";
 
 export default function Leaderboard({ students = [], loading = false }: Props) {
   const top3 = students.slice(0, 3);
   const rest = students.slice(3);
 
-  const EmptyState = () => (
-    <div style={{
-      display: 'flex', flexDirection: 'column', alignItems: 'center',
-      justifyContent: 'center', padding: '64px 24px', color: 'var(--text-muted)',
-    }}>
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ marginBottom: '12px', opacity: 0.4 }}>
-        <path d="M18 20V10M12 20V4M6 20v-6"/>
-      </svg>
-      <p style={{ fontSize: '14px', fontWeight: '500' }}>No leaderboard data yet</p>
-      <p style={{ fontSize: '12px', marginTop: '4px' }}>Rankings will appear as students earn points.</p>
-    </div>
-  );
+
 
   return (
     <div className="animate-fade-up">
       {/* Header */}
-      <div style={{ marginBottom: '40px' }}>
-        <div style={{ width: '28px', height: '2px', background: 'var(--amber)', borderRadius: '1px', marginBottom: '12px' }} />
-        <h1 style={{
-          fontFamily: "'Playfair Display', serif",
-          fontSize: '36px', fontWeight: '700', color: 'var(--obsidian)',
-          letterSpacing: '-0.02em', marginBottom: '8px',
-        }}>
+      <div className="mb-10">
+        <div className="w-7 h-0.5 bg-[var(--amber)] rounded-sm mb-3" />
+        <h1 className="font-['Playfair_Display',_serif] text-4xl font-bold text-[var(--obsidian)] tracking-tight mb-2">
           Leaderboard
         </h1>
-        <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
+        <p className="text-sm text-[var(--text-muted)]">
           Top performing students ranked by total points.
         </p>
       </div>
 
       {loading ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div className="flex flex-col gap-3">
           {[1, 2, 3].map(i => (
-            <div key={i} className="skeleton" style={{ height: '64px', borderRadius: '12px' }} />
+            <div key={i} className="skeleton h-16 rounded-xl" />
           ))}
         </div>
       ) : students.length === 0 ? (
-        <div className="foundry-card"><EmptyState /></div>
+        <div className="foundry-card">
+          <EmptyState />
+        </div>
       ) : (
         <>
           {/* Top 3 Podium */}
           {top3.length > 0 && (
-            <div className="animate-fade-up-delay-1" style={{
-              display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '32px',
-            }}>
+            <div className="animate-fade-up-delay-1 grid grid-cols-3 gap-3 mb-8">
               {[top3[1], top3[0], top3[2]].filter(Boolean).map((s, i) => {
                 const isCenter = i === 1;
                 return (
-                  <div key={s.rank} style={{
-                    background: isCenter ? 'var(--obsidian)' : 'white',
-                    border: `1px solid ${isCenter ? 'var(--obsidian)' : 'var(--cream-border)'}`,
-                    borderRadius: '16px', padding: '24px', textAlign: 'center',
-                    marginTop: isCenter ? '0' : '16px', position: 'relative', overflow: 'hidden',
-                    boxShadow: isCenter ? 'var(--shadow-lg)' : 'var(--shadow-sm)',
-                  }}>
-                    {isCenter && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'var(--amber)' }} />}
-                    <div style={{
-                      width: '40px', height: '40px',
-                      background: isCenter ? 'rgba(250,248,243,0.1)' : medalBg[s.rank] || 'var(--cream)',
-                      borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      margin: '0 auto 12px', fontSize: '18px',
-                    }}>
+                  <div
+                    key={s.rank}
+                    className={`relative overflow-hidden rounded-2xl p-6 text-center border ${isCenter
+                        ? 'bg-[var(--obsidian)] border-[var(--obsidian)] shadow-lg mt-0'
+                        : 'bg-white border-[var(--cream-border)] shadow-sm mt-4'
+                      }`}
+                  >
+                    {isCenter && <div className="absolute top-0 left-0 right-0 h-[3px] bg-[var(--amber)]" />}
+
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3 text-lg ${isCenter ? 'bg-[#faf8f3]/10' : ''
+                        }`}
+                      style={!isCenter ? { background: medalBg[s.rank] || 'var(--cream)' } : {}}
+                    >
                       {medalEmoji[s.rank]}
                     </div>
-                    <p style={{ fontSize: '14px', fontWeight: '600', color: isCenter ? 'var(--cream)' : 'var(--obsidian)', marginBottom: '4px' }}>{s.name}</p>
-                    <p style={{ fontSize: '11px', color: isCenter ? 'rgba(250,248,243,0.5)' : 'var(--text-muted)', marginBottom: '12px' }}>{s.roll}</p>
-                    <p style={{ fontFamily: "'Playfair Display', serif", fontSize: '24px', fontWeight: '700', color: isCenter ? 'var(--amber-light)' : 'var(--obsidian)' }}>
+
+                    <p className={`text-sm font-semibold mb-1 ${isCenter ? 'text-[var(--cream)]' : 'text-[var(--obsidian)]'}`}>
+                      {s.name}
+                    </p>
+                    <p className={`text-[11px] mb-3 ${isCenter ? 'text-[#faf8f3]/50' : 'text-[var(--text-muted)]'}`}>
+                      {s.roll}
+                    </p>
+                    <p className={`font-['Playfair_Display',_serif] text-2xl font-bold ${isCenter ? 'text-[var(--amber-light)]' : 'text-[var(--obsidian)]'}`}>
                       {s.points.toLocaleString()}
                     </p>
-                    <p style={{ fontSize: '11px', color: isCenter ? 'rgba(250,248,243,0.4)' : 'var(--text-muted)' }}>points</p>
+                    <p className={`text-[11px] ${isCenter ? 'text-[#faf8f3]/40' : 'text-[var(--text-muted)]'}`}>
+                      points
+                    </p>
                   </div>
                 );
               })}
@@ -99,40 +76,34 @@ export default function Leaderboard({ students = [], loading = false }: Props) {
 
           {/* Rest of table */}
           {rest.length > 0 && (
-            <div className="animate-fade-up-delay-2 foundry-card" style={{ overflow: 'hidden' }}>
-              <div style={{
-                display: 'grid', gridTemplateColumns: '48px 1fr 120px 100px',
-                padding: '12px 24px', borderBottom: '1px solid var(--cream-border)', background: 'var(--cream)',
-              }}>
+            <div className="animate-fade-up-delay-2 foundry-card overflow-hidden">
+              <div className="grid grid-cols-[48px_1fr_120px_100px] py-3 px-6 border-b border-[var(--cream-border)] bg-[var(--cream)]">
                 {['Rank', 'Student', 'Department', 'Points'].map(h => (
-                  <span key={h} style={{ fontSize: '10px', fontWeight: '700', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+                  <span key={h} className="text-[10px] font-bold tracking-[0.1em] uppercase text-[var(--text-muted)]">
                     {h}
                   </span>
                 ))}
               </div>
+
               {rest.map((student, i) => (
-                <div key={student.rank} style={{
-                  display: 'grid', gridTemplateColumns: '48px 1fr 120px 100px',
-                  padding: '16px 24px', alignItems: 'center',
-                  borderBottom: i < rest.length - 1 ? '1px solid var(--cream-border)' : 'none',
-                  background: student.isYou ? 'var(--amber-pale)' : 'white',
-                }}>
-                  <div style={{
-                    width: '28px', height: '28px', borderRadius: '7px', background: 'var(--cream)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)',
-                  }}>
+                <div
+                  key={student.rank}
+                  className={`grid grid-cols-[48px_1fr_120px_100px] py-4 px-6 items-center ${i < rest.length - 1 ? 'border-b border-[var(--cream-border)]' : ''
+                    } ${student.isYou ? 'bg-[var(--amber-pale)]' : 'bg-white'
+                    }`}
+                >
+                  <div className="w-7 h-7 rounded-md bg-[var(--cream)] flex items-center justify-center text-xs font-bold text-[var(--text-muted)]">
                     {student.rank}
                   </div>
                   <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '14px', fontWeight: '500', color: 'var(--obsidian)' }}>{student.name}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-[var(--obsidian)]">{student.name}</span>
                       {student.isYou && <span className="foundry-badge badge-amber">You</span>}
                     </div>
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>{student.roll}</span>
+                    <span className="text-[11px] text-[var(--text-muted)] font-mono">{student.roll}</span>
                   </div>
-                  <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{student.department}</span>
-                  <span style={{ fontFamily: "'Playfair Display', serif", fontSize: '16px', fontWeight: '600', color: student.isYou ? 'var(--amber)' : 'var(--obsidian)' }}>
+                  <span className="text-[13px] text-[var(--text-secondary)]">{student.department}</span>
+                  <span className={`font-['Playfair_Display',_serif] text-base font-semibold ${student.isYou ? 'text-[var(--amber)]' : 'text-[var(--obsidian)]'}`}>
                     {student.points.toLocaleString()}
                   </span>
                 </div>
