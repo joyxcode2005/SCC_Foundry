@@ -145,6 +145,30 @@ input:focus, textarea:focus, select:focus, button:focus-visible {
   color: var(--text-muted);
 }
 
+/* Textarea — same design token as foundry-input */
+.foundry-textarea {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  background: white;
+  border: 1.5px solid var(--cream-border);
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  resize: none;
+}
+
+.foundry-textarea:focus {
+  border-color: var(--amber);
+  box-shadow: 0 0 0 3px rgba(200, 134, 42, 0.12);
+  outline: none;
+}
+
+.foundry-textarea::placeholder {
+  color: var(--text-muted);
+}
+
 /* Buttons */
 .btn-primary {
   display: inline-flex;
