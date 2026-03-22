@@ -78,5 +78,6 @@ export interface ProjectCardProps {
     isCompleted: boolean;
     isModerator: boolean;
     handleEdit: (e: React.MouseEvent, project: any) => void; // Adjust type as needed
+    onClick: () => void; // Added onClick for card interaction
     // handleDelete: (e: React.MouseEvent, id: string) => void;
 }

@@ -2,21 +2,23 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../config";
 import type { ProjectProps } from "../config/types";
 import CreateProject from "../components/CreateProject";
-import toast from "react-hot-toast";
 import EditProject from "../components/EditProject";
+import ProjectDetails from "../components/ProjectDetails"; // Brought this in from our previous step
 import ProjectCard from "../components/ProjectCard";
+import toast from "react-hot-toast";
 
 export default function Projects({ projects = [], loading = false }: ProjectProps) {
-  // View and Role State
-  const [currentView, setCurrentView] = useState<'list' | 'create' | 'edit'>('list');
+  // View and Role State - added 'details' to the type
+  const [currentView, setCurrentView] = useState<'list' | 'create' | 'edit' | 'details'>('list');
   const [userRole, setUserRole] = useState<string | null>(null);
 
   // Data State
   const [projectData, setProjectData] = useState<ProjectProps["projects"]>(projects);
   const [isFetching, setIsFetching] = useState(loading);
 
-  // Track which project is being edited
+  // Track which project is being edited or viewed
   const [editingProject, setEditingProject] = useState<any>(null);
+  const [selectedProject, setSelectedProject] = useState<any>(null);
 
   useEffect(() => {
     async function getRole() {
@@ -56,31 +58,40 @@ export default function Projects({ projects = [], loading = false }: ProjectProp
     fetchProjectData();
   };
 
-  // const handleDelete = async (e: React.MouseEvent, id: string) => {
-  //   e.stopPropagation(); // Prevent card click if you have one
+  // Uncommented and restored the delete functionality
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation(); // Prevents the card click from triggering the 'details' view
 
-  //   if (!window.confirm("Are you sure you want to delete this project? This cannot be undone.")) {
-  //     return;
-  //   }
+    if (!window.confirm("Are you sure you want to delete this project? This cannot be undone.")) {
+      return;
+    }
 
-  //   const toastId = toast.loading("Deleting project...");
-  //   const { error } = await supabase.from("projects").delete().eq("id", id);
+    const toastId = toast.loading("Deleting project...");
+    const { error } = await supabase.from("projects").delete().eq("id", id);
 
-  //   if (error) {
-  //     toast.error("Failed to delete project.", { id: toastId });
-  //   } else {
-  //     toast.success("Project deleted successfully.", { id: toastId });
-  //     fetchProjectData();
-  //   }
-  // };
+    if (error) {
+      toast.error("Failed to delete project.", { id: toastId });
+    } else {
+      toast.success("Project deleted successfully.", { id: toastId });
+      fetchProjectData();
+    }
+  };
 
   const handleEdit = (e: React.MouseEvent, project: any) => {
-    e.stopPropagation();
+    e.stopPropagation(); // Prevents the card click from triggering the 'details' view
     setEditingProject(project);
     setCurrentView('edit');
   };
 
-  // VIEWS
+  const handleCardClick = (project: any) => {
+    setSelectedProject(project);
+    setCurrentView('details');
+  };
+
+  // ==============================
+  // VIEWS RENDERING
+  // ==============================
+
   if (currentView === 'create') {
     return (
       <div className="animate-fade-up">
@@ -107,11 +118,26 @@ export default function Projects({ projects = [], loading = false }: ProjectProp
     );
   }
 
+  if (currentView === 'details' && selectedProject) {
+    return (
+      <ProjectDetails
+        project={selectedProject}
+        onBack={() => {
+          setCurrentView('list');
+          setSelectedProject(null);
+        }}
+      />
+    );
+  }
+
+  // ==============================
+  // LIST VIEW RENDERING
+  // ==============================
+
   const safeProjectData = projectData ?? [];
   const activeCount = safeProjectData.filter(p => p.status === 'Active').length;
   const completedCount = safeProjectData.filter(p => p.status === 'Completed').length;
 
-  // LIST VIEW
   return (
     <div className="animate-fade-up relative">
       {/* Header */}
@@ -163,7 +189,7 @@ export default function Projects({ projects = [], loading = false }: ProjectProp
                     isCompleted={isCompleted}
                     isModerator={isModerator}
                     handleEdit={handleEdit}
-                    // handleDelete={handleDelete}
+                    onClick={() => handleCardClick(project)} // Passed the click handler to open details
                   />
                 );
               })

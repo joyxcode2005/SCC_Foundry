@@ -1,12 +1,12 @@
-import { Link2, Pencil, Trash2 } from 'lucide-react'
+import { Link2, Pencil } from 'lucide-react'
 import type { ProjectCardProps } from '../config/types'
 import { Link } from 'react-router-dom'
 
 
 
-const ProjectCard = ({ project, isCompleted, isModerator, handleEdit }: ProjectCardProps) => {
+const ProjectCard = ({ project, isCompleted, isModerator, handleEdit, onClick }: ProjectCardProps) => {
     return (
-        <div key={project.id} className="foundry-card p-0 overflow-hidden cursor-pointer relative group">
+        <div onClick={onClick} key={project.id} className="foundry-card p-0 overflow-hidden cursor-pointer relative group">
             <div className={`h-[3px] bg-gradient-to-r ${isCompleted ? 'from-[#2D7A4A] to-[#4A9A6A]' : 'from-[var(--amber)] to-[var(--amber-light)]'}`} />
 
             {/* Action Buttons (Visible on Hover for Moderators) */}
