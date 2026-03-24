@@ -33,16 +33,48 @@ export default function CreateProject({ onSuccess, onCancel }: CreateProjectProp
       toast.error("Only Moderators can create projects.");
       return;
     }
+
     setLoading(true);
+    const toastId = toast.loading("Creating project...");
+
     const { data: { user } } = await supabase.auth.getUser();
-    const { error } = await supabase.from("projects").insert([
-      { ...formData, created_by: user?.id },
-    ]);
+
+    if (!user) {
+      toast.error("Authentication required.", { id: toastId });
+      setLoading(false);
+      return;
+    }
+
+    // Step 1: Insert the project AND ask Supabase to return the new row data
+    const { data: newProject, error: projectError } = await supabase
+      .from("projects")
+      .insert([{ ...formData, created_by: user.id }])
+      .select() // <-- IMPORTANT: This tells Supabase to return the created data
+      .single(); // <-- We only expect one row back
+
+    if (projectError) {
+      toast.error(projectError.message, { id: toastId });
+      setLoading(false);
+      return;
+    }
+
+    // Step 2: Add the creator to project_members as a MODERATOR
+    const { error: memberError } = await supabase
+      .from("project_members")
+      .insert([{
+        project_id: newProject.id, // Using the ID from Step 1
+        user_id: user.id,
+        role: "MODERATOR"
+      }]);
+
     setLoading(false);
-    if (error) {
-      toast.error(error.message);
+
+    if (memberError) {
+      // The project was created, but role assignment failed
+      console.error("Member assign error:", memberError);
+      toast.error("Project created, but failed to assign role.", { id: toastId });
     } else {
-      toast.success("Project created successfully!");
+      toast.success("Project created successfully!", { id: toastId });
       if (onSuccess) onSuccess();
     }
   };
