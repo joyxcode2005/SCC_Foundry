@@ -35,19 +35,8 @@ export const App = () => {
 
   if (loading) {
     return (
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        minHeight: '100vh', background: 'var(--cream)',
-        flexDirection: 'column', gap: '16px',
-      }}>
-        <div style={{
-          width: '36px', height: '36px',
-          border: '2px solid var(--cream-border)',
-          borderTopColor: 'var(--amber)',
-          borderRadius: '50%',
-          animation: 'spin 0.8s linear infinite',
-        }} />
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[var(--cream)]">
+        <div className="h-9 w-9 animate-[spin_0.8s_linear_infinite] rounded-full border-2 border-[var(--cream-border)] border-t-[var(--amber)]" />
       </div>
     );
   }

@@ -10,9 +10,12 @@ interface EditProjectProps {
 
 export default function EditProject({ project, onSuccess, onCancel }: EditProjectProps) {
     const [loading, setLoading] = useState(false);
+
+    // 1. Added drive_url to state
     const [formData, setFormData] = useState({
         title: project.title || "",
         description: project.description || "",
+        drive_url: project.drive_url || "",
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -24,11 +27,13 @@ export default function EditProject({ project, onSuccess, onCancel }: EditProjec
         e.preventDefault();
         setLoading(true);
 
+        // 2. Included drive_url in the Supabase update payload
         const { error } = await supabase
             .from("projects")
             .update({
                 title: formData.title,
                 description: formData.description,
+                drive_url: formData.drive_url,
             })
             .eq("id", project.id);
 
@@ -77,6 +82,18 @@ export default function EditProject({ project, onSuccess, onCancel }: EditProjec
                     />
                 </div>
 
+                {/* 3. Added Drive Link Input Field */}
+                <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-semibold text-[var(--obsidian)]">Drive Link</label>
+                    <input
+                        type="url"
+                        name="drive_url"
+                        value={formData.drive_url}
+                        onChange={handleChange}
+                        placeholder="https://drive.google.com/..."
+                        className="input-field px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--amber)]"
+                    />
+                </div>
 
                 <div className="flex items-center justify-end gap-3 mt-4">
                     <button

@@ -1,64 +1,27 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "../config";
 import toast from "react-hot-toast";
 
 interface CreateTaskProps {
     projectId: string;
+    isModerator: boolean; // <-- Passed directly from the parent
     onSuccess: () => void;
     onCancel: () => void;
 }
 
-export default function CreateTask({ projectId, onSuccess, onCancel }: CreateTaskProps) {
-    // Role checking states
-    const [isCheckingRole, setIsCheckingRole] = useState(true);
-    const [isModerator, setIsModerator] = useState(false);
-
+export default function CreateTask({ projectId, isModerator, onSuccess, onCancel }: CreateTaskProps) {
     // Form states
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         title: "",
         description: "",
-        category: "TECH", // Defaulted to match the first option
+        category: "TECH",
         points: 10,
         max_assignees: 1,
         max_interests: 5,
         deadline: "",
         drive_folder_url: "",
     });
-
-    // 1. CHECK ROLE ON MOUNT
-    useEffect(() => {
-        const verifyRole = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
-                setIsCheckingRole(false);
-                return;
-            }
-
-            console.log("Checking role for user:", user.id, "in project:", projectId);
-
-            // Check if this user is a MODERATOR for this specific project
-            const { data, error } = await supabase
-                .from('project_members')
-                .select('role')
-                .eq('project_id', projectId)
-                .eq('user_id', user.id)
-                .maybeSingle();
-
-            console.log("Role check result:", { data, error });
-
-            if (data?.role === 'MODERATOR') {
-                setIsModerator(true);
-            } else if (error && error.code !== 'PGRST116') {
-                // PGRST116 just means no rows returned (user not in project), ignore that specific error
-                console.error("Error checking role:", error);
-            }
-
-            setIsCheckingRole(false);
-        };
-
-        verifyRole();
-    }, [projectId]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -68,6 +31,7 @@ export default function CreateTask({ projectId, onSuccess, onCancel }: CreateTas
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
+        // Fallback check just in case
         if (!isModerator) {
             toast.error("Only moderators can create tasks for this project.");
             return;
@@ -76,7 +40,6 @@ export default function CreateTask({ projectId, onSuccess, onCancel }: CreateTas
         setLoading(true);
         const toastId = toast.loading("Creating task...");
 
-        const { data: { user } } = await supabase.auth.getUser();
         const deadlineValue = formData.deadline ? new Date(formData.deadline).toISOString() : null;
 
         const { error } = await supabase.from("tasks").insert([
@@ -104,11 +67,7 @@ export default function CreateTask({ projectId, onSuccess, onCancel }: CreateTas
         }
     };
 
-    // 2. PREVENT RENDERING IF NOT MODERATOR OR STILL CHECKING
-    if (isCheckingRole) {
-        return <div className="p-8 text-center text-[var(--text-muted)]">Verifying permissions...</div>;
-    }
-
+    // 1. RENDER ACCESS DENIED IF NOT MODERATOR
     if (!isModerator) {
         return (
             <div className="bg-[var(--cream)] border border-red-200 rounded-2xl p-8 max-w-2xl mx-auto my-6 text-center">
@@ -119,7 +78,7 @@ export default function CreateTask({ projectId, onSuccess, onCancel }: CreateTas
         );
     }
 
-    // 3. RENDER THE ACTUAL FORM IF MODERATOR
+    // 2. RENDER THE ACTUAL FORM IF MODERATOR
     return (
         <div className="bg-[var(--cream)] border border-[var(--cream-border)] rounded-2xl p-8 max-w-2xl mx-auto my-6">
             <div className="mb-6">

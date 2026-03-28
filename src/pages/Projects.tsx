@@ -59,26 +59,26 @@ export default function Projects({ projects = [], loading = false }: ProjectProp
   };
 
   // Uncommented and restored the delete functionality
-  const handleDelete = async (e: React.MouseEvent, id: string) => {
-    e.stopPropagation(); // Prevents the card click from triggering the 'details' view
+  // const handleDelete = async (e: React.MouseEvent, id: string) => {
+  //   e.stopPropagation(); // Prevents the card click from triggering the 'details' view
 
-    if (!window.confirm("Are you sure you want to delete this project? This cannot be undone.")) {
-      return;
-    }
+  //   if (!window.confirm("Are you sure you want to delete this project? This cannot be undone.")) {
+  //     return;
+  //   }
 
-    const toastId = toast.loading("Deleting project...");
-    const { error } = await supabase.from("projects").delete().eq("id", id);
+  //   const toastId = toast.loading("Deleting project...");
+  //   const { error } = await supabase.from("projects").delete().eq("id", id);
 
-    if (error) {
-      toast.error("Failed to delete project.", { id: toastId });
-    } else {
-      toast.success("Project deleted successfully.", { id: toastId });
-      fetchProjectData();
-    }
-  };
+  //   if (error) {
+  //     toast.error("Failed to delete project.", { id: toastId });
+  //   } else {
+  //     toast.success("Project deleted successfully.", { id: toastId });
+  //     fetchProjectData();
+  //   }
+  // };
 
   const handleEdit = (e: React.MouseEvent, project: any) => {
-    e.stopPropagation(); // Prevents the card click from triggering the 'details' view
+    e.stopPropagation();
     setEditingProject(project);
     setCurrentView('edit');
   };

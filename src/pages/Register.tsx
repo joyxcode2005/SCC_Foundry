@@ -37,7 +37,9 @@ export default function Register() {
       },
     });
 
-    if (authError) { setError(authError.message); setLoading(false); return; }
+    
+
+    if (authError) { setError(authError.toString()); setLoading(false); return; }
     if (!authData?.user) { setError('Registration failed. Please try again.'); setLoading(false); return; }
 
     setSuccess(true);
