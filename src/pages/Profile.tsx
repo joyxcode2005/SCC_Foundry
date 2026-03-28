@@ -45,12 +45,17 @@ export default function Profile() {
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) throw new Error('Not logged in.');
-            const { error } = await supabase.from('users').upsert({
-                id: user.id, first_name: formData.first_name,
-                middle_name: formData.middle_name || null, last_name: formData.last_name,
-                phone: formData.phone, college_roll: formData.college_roll,
-                department: formData.department, updated_at: new Date(),
-            });
+            const { error } = await supabase.from('users')
+                .update({
+                    first_name: formData.first_name,
+                    middle_name: formData.middle_name || null,
+                    last_name: formData.last_name,
+                    phone: formData.phone,
+                    college_roll: formData.college_roll,
+                    department: formData.department,
+                    updated_at: new Date(),
+                })
+                .eq('id', user.id);
             if (error) throw error;
             setProfile(formData); setIsEditing(false);
             setMessage({ type: 'success', text: 'Profile updated successfully.' });
