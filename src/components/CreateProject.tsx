@@ -45,12 +45,11 @@ export default function CreateProject({ onSuccess, onCancel }: CreateProjectProp
       return;
     }
 
-    // Step 1: Insert the project AND ask Supabase to return the new row data
     const { data: newProject, error: projectError } = await supabase
       .from("projects")
       .insert([{ ...formData, created_by: user.id }])
-      .select() // <-- IMPORTANT: This tells Supabase to return the created data
-      .single(); // <-- We only expect one row back
+      .select()
+      .single();
 
     if (projectError) {
       toast.error(projectError.message, { id: toastId });
@@ -58,11 +57,10 @@ export default function CreateProject({ onSuccess, onCancel }: CreateProjectProp
       return;
     }
 
-    // Step 2: Add the creator to project_members as a MODERATOR
     const { error: memberError } = await supabase
       .from("project_members")
       .insert([{
-        project_id: newProject.id, // Using the ID from Step 1
+        project_id: newProject.id,
         user_id: user.id,
         role: "MODERATOR"
       }]);
@@ -70,7 +68,6 @@ export default function CreateProject({ onSuccess, onCancel }: CreateProjectProp
     setLoading(false);
 
     if (memberError) {
-      // The project was created, but role assignment failed
       console.error("Member assign error:", memberError);
       toast.error("Project created, but failed to assign role.", { id: toastId });
     } else {
@@ -83,8 +80,6 @@ export default function CreateProject({ onSuccess, onCancel }: CreateProjectProp
 
   return (
     <div className="animate-fade-up max-w-[680px]">
-
-      {/* Page Header */}
       <div className="mb-9">
         <div className="w-7 h-0.5 bg-[var(--amber)] rounded-[1px] mb-3" />
         <div className="flex items-end justify-between">
@@ -109,13 +104,10 @@ export default function CreateProject({ onSuccess, onCancel }: CreateProjectProp
         </div>
       </div>
 
-      {/* Form Card */}
       <div className="foundry-card overflow-hidden">
         <div className="h-[3px] bg-gradient-to-r from-[var(--amber)] to-[var(--amber-light)]" />
 
         <form onSubmit={handleSubmit} className="p-8">
-
-          {/* Project Details */}
           <div className="mb-7">
             <p className="text-[10px] font-bold tracking-[0.12em] uppercase text-[var(--amber)] mb-4">
               Project Details
@@ -154,7 +146,6 @@ export default function CreateProject({ onSuccess, onCancel }: CreateProjectProp
 
           <div className="h-px bg-[var(--cream-border)] my-6" />
 
-          {/* Resources */}
           <div className="mb-8">
             <p className="text-[10px] font-bold tracking-[0.12em] uppercase text-[var(--amber)] mb-4">
               Resources
@@ -178,7 +169,6 @@ export default function CreateProject({ onSuccess, onCancel }: CreateProjectProp
 
           <div className="h-px bg-[var(--cream-border)] mb-6" />
 
-          {/* Actions */}
           <div className="flex items-center justify-between">
             <p className="text-[13px] text-[var(--text-muted)]">
               Fields marked <span className="text-[var(--amber)] font-semibold">*</span> are required.

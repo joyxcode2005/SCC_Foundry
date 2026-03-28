@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { supabase } from "../config";
 import toast from "react-hot-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const navItems = [
   {
@@ -48,9 +48,40 @@ const navItems = [
   },
 ];
 
+const moderatorNavItems = [
+  {
+    to: "/dashboard/task-interests",
+    label: "Task Interests",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+      </svg>
+    ),
+  },
+];
+
 export default function Sidebar() {
   const navigate = useNavigate();
   const [loggingOut, setLoggingOut] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [loadingRole, setLoadingRole] = useState(true);
+
+  useEffect(() => {
+    async function getRole() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data } = await supabase.from("users").select("role").eq("id", user.id).single();
+          setUserRole(data?.role || "MEMBER");
+        }
+      } catch (error) {
+        console.error("Failed to fetch user role", error);
+      } finally {
+        setLoadingRole(false);
+      }
+    }
+    getRole();
+  }, []);
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -117,6 +148,40 @@ export default function Sidebar() {
             )}
           </NavLink>
         ))}
+
+        {/* Moderator Only Section */}
+        {!loadingRole && userRole === 'MODERATOR' && (
+          <>
+            <div className="my-3 h-px bg-[var(--cream-border)]" />
+            <div className="mb-2.5 pl-2 text-[10px] font-semibold uppercase tracking-widest text-[var(--text-muted)]">
+              Moderator Tools
+            </div>
+            {moderatorNavItems.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) =>
+                  `flex items-center gap-2.5 rounded-[10px] px-2.5 py-[9px] text-[13.5px] transition-all duration-150 no-underline
+                  ${isActive
+                    ? "bg-[var(--cream)] font-semibold text-[var(--obsidian)]"
+                    : "font-normal text-[var(--text-secondary)] hover:bg-gray-50"}`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <span className={`flex transition-colors duration-150 ${isActive ? "text-[var(--amber)]" : "text-[var(--text-muted)]"}`}>
+                      {item.icon}
+                    </span>
+                    {item.label}
+                    {isActive && (
+                      <span className="ml-auto h-1 w-1 shrink-0 rounded-full bg-[var(--amber)]" />
+                    )}
+                  </>
+                )}
+              </NavLink>
+            ))}
+          </>
+        )}
       </nav>
 
       {/* Divider */}

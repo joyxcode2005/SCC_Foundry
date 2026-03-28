@@ -11,7 +11,6 @@ interface EditProjectProps {
 export default function EditProject({ project, onSuccess, onCancel }: EditProjectProps) {
     const [loading, setLoading] = useState(false);
 
-    // 1. Added drive_url to state
     const [formData, setFormData] = useState({
         title: project.title || "",
         description: project.description || "",
@@ -27,7 +26,6 @@ export default function EditProject({ project, onSuccess, onCancel }: EditProjec
         e.preventDefault();
         setLoading(true);
 
-        // 2. Included drive_url in the Supabase update payload
         const { error } = await supabase
             .from("projects")
             .update({
@@ -82,7 +80,6 @@ export default function EditProject({ project, onSuccess, onCancel }: EditProjec
                     />
                 </div>
 
-                {/* 3. Added Drive Link Input Field */}
                 <div className="flex flex-col gap-1.5">
                     <label className="text-sm font-semibold text-[var(--obsidian)]">Drive Link</label>
                     <input

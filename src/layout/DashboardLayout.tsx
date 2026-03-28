@@ -3,22 +3,10 @@ import Sidebar from "../components/Sidebar";
 
 export default function DashboardLayout() {
   return (
-    <div style={{
-      display: "flex",
-      minHeight: "100vh",
-      background: "var(--cream)",
-    }}>
+    <div className="flex min-h-screen bg-[var(--cream)]">
       <Sidebar />
-      <main style={{
-        flex: 1,
-        overflowY: "auto",
-        overflowX: "hidden",
-      }}>
-        <div style={{
-          maxWidth: "1000px",
-          margin: "0 auto",
-          padding: "48px 48px",
-        }}>
+      <main className="flex-1 overflow-y-auto overflow-x-hidden">
+        <div className="mx-auto w-full max-w-[1000px] p-12">
           <Outlet />
         </div>
       </main>

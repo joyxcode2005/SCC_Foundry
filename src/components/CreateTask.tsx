@@ -1,16 +1,15 @@
 import { useState } from "react";
 import { supabase } from "../config";
 import toast from "react-hot-toast";
+import { useProjectStore } from "../store/useProjectStore";
+import type { CreateTaskProps } from "../types";
 
-interface CreateTaskProps {
-    projectId: string;
-    isModerator: boolean; // <-- Passed directly from the parent
-    onSuccess: () => void;
-    onCancel: () => void;
-}
 
-export default function CreateTask({ projectId, isModerator, onSuccess, onCancel }: CreateTaskProps) {
-    // Form states
+
+export default function CreateTask({ onSuccess, onCancel }: CreateTaskProps) {
+    const { currentProject, userRole } = useProjectStore();
+    const isModerator = userRole === 'MODERATOR';
+
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         title: "",
@@ -31,8 +30,7 @@ export default function CreateTask({ projectId, isModerator, onSuccess, onCancel
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        // Fallback check just in case
-        if (!isModerator) {
+        if (!isModerator || !currentProject) {
             toast.error("Only moderators can create tasks for this project.");
             return;
         }
@@ -44,7 +42,7 @@ export default function CreateTask({ projectId, isModerator, onSuccess, onCancel
 
         const { error } = await supabase.from("tasks").insert([
             {
-                project_id: projectId,
+                project_id: currentProject.id,
                 title: formData.title,
                 description: formData.description || null,
                 category: formData.category,
@@ -67,7 +65,6 @@ export default function CreateTask({ projectId, isModerator, onSuccess, onCancel
         }
     };
 
-    // 1. RENDER ACCESS DENIED IF NOT MODERATOR
     if (!isModerator) {
         return (
             <div className="bg-[var(--cream)] border border-red-200 rounded-2xl p-8 max-w-2xl mx-auto my-6 text-center">
@@ -78,7 +75,6 @@ export default function CreateTask({ projectId, isModerator, onSuccess, onCancel
         );
     }
 
-    // 2. RENDER THE ACTUAL FORM IF MODERATOR
     return (
         <div className="bg-[var(--cream)] border border-[var(--cream-border)] rounded-2xl p-8 max-w-2xl mx-auto my-6">
             <div className="mb-6">
@@ -89,7 +85,6 @@ export default function CreateTask({ projectId, isModerator, onSuccess, onCancel
             </div>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-                {/* Title */}
                 <div className="flex flex-col gap-1.5">
                     <label className="text-sm font-semibold text-[var(--obsidian)]">Task Title *</label>
                     <input
@@ -103,7 +98,6 @@ export default function CreateTask({ projectId, isModerator, onSuccess, onCancel
                     />
                 </div>
 
-                {/* Description */}
                 <div className="flex flex-col gap-1.5">
                     <label className="text-sm font-semibold text-[var(--obsidian)]">Description</label>
                     <textarea
@@ -117,7 +111,6 @@ export default function CreateTask({ projectId, isModerator, onSuccess, onCancel
                 </div>
 
                 <div className="grid grid-cols-2 gap-5">
-                    {/* Category */}
                     <div className="flex flex-col gap-1.5">
                         <label className="text-sm font-semibold text-[var(--obsidian)]">Category *</label>
                         <select
@@ -134,7 +127,6 @@ export default function CreateTask({ projectId, isModerator, onSuccess, onCancel
                         </select>
                     </div>
 
-                    {/* Points */}
                     <div className="flex flex-col gap-1.5">
                         <label className="text-sm font-semibold text-[var(--obsidian)]">Points</label>
                         <input
@@ -150,7 +142,6 @@ export default function CreateTask({ projectId, isModerator, onSuccess, onCancel
                 </div>
 
                 <div className="grid grid-cols-2 gap-5">
-                    {/* Max Assignees */}
                     <div className="flex flex-col gap-1.5">
                         <label className="text-sm font-semibold text-[var(--obsidian)]">Max Assignees</label>
                         <input
@@ -164,7 +155,6 @@ export default function CreateTask({ projectId, isModerator, onSuccess, onCancel
                         />
                     </div>
 
-                    {/* Max Interests */}
                     <div className="flex flex-col gap-1.5">
                         <label className="text-sm font-semibold text-[var(--obsidian)]">Max Interests</label>
                         <input
@@ -180,7 +170,6 @@ export default function CreateTask({ projectId, isModerator, onSuccess, onCancel
                 </div>
 
                 <div className="grid grid-cols-2 gap-5">
-                    {/* Deadline */}
                     <div className="flex flex-col gap-1.5">
                         <label className="text-sm font-semibold text-[var(--obsidian)]">Deadline</label>
                         <input
@@ -192,7 +181,6 @@ export default function CreateTask({ projectId, isModerator, onSuccess, onCancel
                         />
                     </div>
 
-                    {/* Drive Folder URL */}
                     <div className="flex flex-col gap-1.5">
                         <label className="text-sm font-semibold text-[var(--obsidian)]">Drive Folder URL</label>
                         <input
@@ -206,7 +194,6 @@ export default function CreateTask({ projectId, isModerator, onSuccess, onCancel
                     </div>
                 </div>
 
-                {/* Actions */}
                 <div className="flex items-center justify-end gap-3 mt-4 border-t border-[var(--cream-border)] pt-5">
                     <button
                         type="button"

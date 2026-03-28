@@ -1,6 +1,6 @@
 import EmptyState from "../components/EmptyState";
 import { medalBg, medalEmoji } from "../config/constants";
-import type { Props } from "../config/types";
+import type { Props } from "../types";
 
 export default function Leaderboard({ students = [], loading = false }: Props) {
   const top3 = students.slice(0, 3);

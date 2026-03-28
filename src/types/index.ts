@@ -24,18 +24,18 @@ export interface UserProfile {
 }
 
 export interface Project {
-    id: string; // Changed to string because your schema uses UUID
+    id: string;
     title: string;
-    description: string | null; // Matches 'description' in SQL
-    created_by: string | null; // UUID of the user who created it
+    description: string | null;
+    created_by: string | null;
     drive_url: string | null;
     created_at: string;
     updated_at: string;
     course?: string;
-    members?: string[];   // Suggestion: Create a 'project_members' join table later
-    progress?: number;    // 0–100
+    members?: string[];
+    progress?: number;
     status?: 'Active' | 'Completed';
-    due?: string;         // Suggestion: Add a 'due_date' column to your SQL
+    due?: string;
     tags?: string[];
 }
 
@@ -56,13 +56,21 @@ export interface InputFieldProps {
 }
 
 export interface Task {
-    id: number | string;
+    id: string;
     title: string;
-    course: string;
-    due: string;
-    priority: 'High' | 'Medium' | 'Low';
-    status: 'Pending' | 'In Progress' | 'Completed';
+    description: string | null;
+    category: string;
+    course?: string;
+    due?: string;
+    priority?: 'High' | 'Medium' | 'Low';
+    status?: 'Pending' | 'In Progress' | 'Completed';
     points: number;
+    project_id?: string;
+    drive_folder_url?: string | null;
+    max_interests?: number;
+    deadline?: string;
+    created_at?: string;
+    updated_at?: string;
 }
 
 export interface TaskProps {
@@ -74,10 +82,33 @@ export interface TaskProps {
 export type FilterType = 'All' | 'Pending' | 'In Progress' | 'Completed';
 
 export interface ProjectCardProps {
-    project: any; // Ideally replace 'any' with your Project type
+    project: any;
     isCompleted: boolean;
     isModerator: boolean;
-    handleEdit: (e: React.MouseEvent, project: any) => void; // Adjust type as needed
-    onClick: () => void; // Added onClick for card interaction
-    // handleDelete: (e: React.MouseEvent, id: string) => void;
+    handleEdit: (e: React.MouseEvent, project: any) => void;
+    onClick: () => void;
+}
+
+
+export interface ProjectDetailsProps {
+    project: any;
+    onBack: () => void;
+    userRole: string | null;
+}
+
+export interface ProjectState {
+    userRole: string | null;
+    currentProject: Project | null;
+    tasks: Task[];
+    isLoadingTasks: boolean;
+
+    setUserRole: (role: string | null) => void;
+    setCurrentProject: (project: Project | null) => void;
+    fetchTasks: () => Promise<void>;
+    raiseTaskInterest: (taskId: string) => Promise<void>;
+}
+
+export interface CreateTaskProps {
+    onSuccess: () => void;
+    onCancel: () => void;
 }

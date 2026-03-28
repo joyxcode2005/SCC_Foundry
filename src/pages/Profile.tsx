@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import InputRow from "../components/InputRow";
-import type { UserProfile } from "../config/types";
+import type { UserProfile } from "../types";
 import { supabase } from "../config";
 
 export default function Profile() {

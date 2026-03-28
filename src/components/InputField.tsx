@@ -1,4 +1,4 @@
-import type { InputFieldProps } from "../config/types";
+import type { InputFieldProps } from "../types";
 
 const InputField = ({ label, name, type = 'text', required = false, placeholder = '', customClass = '', onChange }: InputFieldProps) => (
     <div>

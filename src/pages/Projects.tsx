@@ -1,24 +1,19 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../config";
-import type { ProjectProps } from "../config/types";
+import type { ProjectProps } from "../types";
 import CreateProject from "../components/CreateProject";
 import EditProject from "../components/EditProject";
-import ProjectDetails from "../components/ProjectDetails"; // Brought this in from our previous step
+import ProjectDetails from "../components/ProjectDetails";
 import ProjectCard from "../components/ProjectCard";
 import toast from "react-hot-toast";
+import { useProjectStore } from "../store/useProjectStore";
 
 export default function Projects({ projects = [], loading = false }: ProjectProps) {
-  // View and Role State - added 'details' to the type
+  const { setCurrentProject, setUserRole, userRole: globalUserRole } = useProjectStore();
   const [currentView, setCurrentView] = useState<'list' | 'create' | 'edit' | 'details'>('list');
-  const [userRole, setUserRole] = useState<string | null>(null);
-
-  // Data State
   const [projectData, setProjectData] = useState<ProjectProps["projects"]>(projects);
   const [isFetching, setIsFetching] = useState(loading);
-
-  // Track which project is being edited or viewed
   const [editingProject, setEditingProject] = useState<any>(null);
-  const [selectedProject, setSelectedProject] = useState<any>(null);
 
   useEffect(() => {
     async function getRole() {
@@ -29,7 +24,7 @@ export default function Projects({ projects = [], loading = false }: ProjectProp
       }
     }
     getRole();
-  }, []);
+  }, [setUserRole]);
 
   const fetchProjectData = useCallback(async () => {
     setIsFetching(true);
@@ -49,33 +44,13 @@ export default function Projects({ projects = [], loading = false }: ProjectProp
   useEffect(() => {
     fetchProjectData();
   }, [fetchProjectData]);
-
-  const isModerator = userRole === "MODERATOR";
+  const isModerator = globalUserRole === "MODERATOR";
 
   const handleProjectSuccess = () => {
     setCurrentView('list');
     setEditingProject(null);
     fetchProjectData();
   };
-
-  // Uncommented and restored the delete functionality
-  // const handleDelete = async (e: React.MouseEvent, id: string) => {
-  //   e.stopPropagation(); // Prevents the card click from triggering the 'details' view
-
-  //   if (!window.confirm("Are you sure you want to delete this project? This cannot be undone.")) {
-  //     return;
-  //   }
-
-  //   const toastId = toast.loading("Deleting project...");
-  //   const { error } = await supabase.from("projects").delete().eq("id", id);
-
-  //   if (error) {
-  //     toast.error("Failed to delete project.", { id: toastId });
-  //   } else {
-  //     toast.success("Project deleted successfully.", { id: toastId });
-  //     fetchProjectData();
-  //   }
-  // };
 
   const handleEdit = (e: React.MouseEvent, project: any) => {
     e.stopPropagation();
@@ -84,13 +59,9 @@ export default function Projects({ projects = [], loading = false }: ProjectProp
   };
 
   const handleCardClick = (project: any) => {
-    setSelectedProject(project);
+    setCurrentProject(project);
     setCurrentView('details');
   };
-
-  // ==============================
-  // VIEWS RENDERING
-  // ==============================
 
   if (currentView === 'create') {
     return (
@@ -118,21 +89,11 @@ export default function Projects({ projects = [], loading = false }: ProjectProp
     );
   }
 
-  if (currentView === 'details' && selectedProject) {
+  if (currentView === 'details') {
     return (
-      <ProjectDetails
-        project={selectedProject}
-        onBack={() => {
-          setCurrentView('list');
-          setSelectedProject(null);
-        }}
-      />
+      <ProjectDetails />
     );
   }
-
-  // ==============================
-  // LIST VIEW RENDERING
-  // ==============================
 
   const safeProjectData = projectData ?? [];
   const activeCount = safeProjectData.filter(p => p.status === 'Active').length;
@@ -140,7 +101,6 @@ export default function Projects({ projects = [], loading = false }: ProjectProp
 
   return (
     <div className="animate-fade-up relative">
-      {/* Header */}
       <div className="mb-9">
         <div className="w-7 h-0.5 bg-[var(--amber)] rounded-[1px] mb-3" />
         <div className="flex items-end justify-between">
@@ -167,7 +127,6 @@ export default function Projects({ projects = [], loading = false }: ProjectProp
         </div>
       </div>
 
-      {/* Grid */}
       <div className="animate-fade-up-delay-1 grid grid-cols-2 gap-[18px]">
         {isFetching ? (
           [1, 2, 3, 4].map(i => (
@@ -189,7 +148,7 @@ export default function Projects({ projects = [], loading = false }: ProjectProp
                     isCompleted={isCompleted}
                     isModerator={isModerator}
                     handleEdit={handleEdit}
-                    onClick={() => handleCardClick(project)} // Passed the click handler to open details
+                    onClick={() => handleCardClick(project)}
                   />
                 );
               })

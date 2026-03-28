@@ -1,5 +1,5 @@
 import { Link2, Pencil } from 'lucide-react'
-import type { ProjectCardProps } from '../config/types'
+import type { ProjectCardProps } from '../types'
 import { Link } from 'react-router-dom'
 
 const ProjectCard = ({ project, isCompleted, isModerator, handleEdit, onClick }: ProjectCardProps) => {

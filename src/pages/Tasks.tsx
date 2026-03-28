@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { priorityColors, statusConfig, } from "../config/constants";
-import type { FilterType, TaskProps } from "../config/types";
+import type { FilterType, TaskProps } from "../types";
 
 export default function Tasks({ tasks = [], loading = false }: TaskProps) {
   const [filter, setFilter] = useState<FilterType>('All');

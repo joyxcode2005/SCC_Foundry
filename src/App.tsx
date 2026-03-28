@@ -15,6 +15,7 @@ import Tasks from "./pages/Tasks";
 import Projects from "./pages/Projects";
 import Profile from "./pages/Profile";
 import Overview from "./pages/Overview";
+import TaskInterests from "./pages/TaskInterests";
 
 export const App = () => {
   const [session, setSession] = useState<Session | null>(null);
@@ -75,6 +76,7 @@ export const App = () => {
             <Route path="tasks" element={<Tasks />} />
             <Route path="projects" element={<Projects />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="task-interests" element={<TaskInterests />} />
           </Route>
 
           <Route path="*" element={<Navigate to={session ? "/dashboard" : "/login"} replace />} />
