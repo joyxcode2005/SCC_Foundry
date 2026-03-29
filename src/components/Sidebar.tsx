@@ -60,6 +60,18 @@ const moderatorNavItems = [
   },
 ];
 
+const memberNavItems = [
+  {
+    to: "/dashboard/assigned-tasks",
+    label: "Assigned Tasks",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+      </svg>
+    ),
+  },
+];
+
 export default function Sidebar() {
   const navigate = useNavigate();
   const [loggingOut, setLoggingOut] = useState(false);
@@ -154,9 +166,43 @@ export default function Sidebar() {
           <>
             <div className="my-3 h-px bg-[var(--cream-border)]" />
             <div className="mb-2.5 pl-2 text-[10px] font-semibold uppercase tracking-widest text-[var(--text-muted)]">
-              Moderator Tools
+              Moderator Options
             </div>
             {moderatorNavItems.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) =>
+                  `flex items-center gap-2.5 rounded-[10px] px-2.5 py-[9px] text-[13.5px] transition-all duration-150 no-underline
+                  ${isActive
+                    ? "bg-[var(--cream)] font-semibold text-[var(--obsidian)]"
+                    : "font-normal text-[var(--text-secondary)] hover:bg-gray-50"}`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <span className={`flex transition-colors duration-150 ${isActive ? "text-[var(--amber)]" : "text-[var(--text-muted)]"}`}>
+                      {item.icon}
+                    </span>
+                    {item.label}
+                    {isActive && (
+                      <span className="ml-auto h-1 w-1 shrink-0 rounded-full bg-[var(--amber)]" />
+                    )}
+                  </>
+                )}
+              </NavLink>
+            ))}
+          </>
+        )}
+
+        {/* Member Only Section */}
+        {!loadingRole && userRole === 'MEMBER' && (
+          <>
+            <div className="my-3 h-px bg-[var(--cream-border)]" />
+            <div className="mb-2.5 pl-2 text-[10px] font-semibold uppercase tracking-widest text-[var(--text-muted)]">
+              Member Options
+            </div>
+            {memberNavItems.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
