@@ -7,9 +7,14 @@ export default function ProjectDetails() {
     const {
         currentProject,
         userRole,
+        currentUserId,
         tasks,
         isLoadingTasks,
         fetchTasks,
+        fetchTaskInterestsForTasks,
+        initializeCurrentUser,
+        taskInterestedUserIds,
+        markTaskInterestedByCurrentUser,
         setCurrentProject,
         raiseTaskInterest
     } = useProjectStore();
@@ -20,12 +25,25 @@ export default function ProjectDetails() {
     useEffect(() => {
         if (currentProject) {
             fetchTasks();
+            initializeCurrentUser();
         }
-    }, [currentProject, fetchTasks]);
+    }, [currentProject, fetchTasks, initializeCurrentUser]);
+
+    useEffect(() => {
+        if (!currentProject) return;
+
+        const taskIds = tasks.map((task) => task.id as string);
+        fetchTaskInterestsForTasks(taskIds);
+    }, [currentProject, tasks, fetchTaskInterestsForTasks]);
 
     const handleRaiseInterest = async (taskId: string) => {
         setSubmittingInterest(taskId);
-        await raiseTaskInterest(taskId);
+        const didRecordInterest = await raiseTaskInterest(taskId);
+
+        if (didRecordInterest) {
+            markTaskInterestedByCurrentUser(taskId);
+        }
+
         setSubmittingInterest(null);
     };
 
@@ -99,53 +117,60 @@ export default function ProjectDetails() {
                 ) : (
                     <div className="grid gap-4">
                         {tasks.map(task => (
-                            <div key={task.id} className="bg-white border border-[var(--cream-border)] rounded-xl p-5 flex flex-col hover:shadow-sm transition-shadow">
-                                <div className="flex items-start justify-between mb-3">
-                                    <div className="flex-1">
-                                        <h3 className="font-semibold text-[var(--obsidian)] mb-1">{task.title}</h3>
-                                        {task.description && <p className="text-sm text-[var(--text-secondary)] line-clamp-2 mb-3">{task.description}</p>}
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-xs font-medium px-2 py-1 bg-gray-100 rounded-md text-gray-600">{task.category}</span>
-                                            <span className="text-xs font-medium px-2 py-1 bg-blue-50 text-blue-600 rounded-md">{task.points} Pts</span>
+                            (() => {
+                                const interestedUserIds = taskInterestedUserIds[task.id as string] || [];
+                                const isUserInterested = !!currentUserId && interestedUserIds.includes(currentUserId);
+                                const isSubmitting = submittingInterest === task.id;
+
+                                return (
+                                    <div key={task.id} className="bg-white border border-[var(--cream-border)] rounded-xl p-5 flex flex-col hover:shadow-sm transition-shadow">
+                                        <div className="flex items-start justify-between mb-3">
+                                            <div className="flex-1">
+                                                <h3 className="font-semibold text-[var(--obsidian)] mb-1">{task.title}</h3>
+                                                {task.description && <p className="text-sm text-[var(--text-secondary)] line-clamp-2 mb-3">{task.description}</p>}
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-xs font-medium px-2 py-1 bg-gray-100 rounded-md text-gray-600">{task.category}</span>
+                                                    <span className="text-xs font-medium px-2 py-1 bg-blue-50 text-blue-600 rounded-md">{task.points} Pts</span>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">{task.status}</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Drive Link and Interest Button */}
+                                        <div className="flex items-center justify-between mt-4 pt-3 border-t border-[var(--cream-border)]">
+                                            <div className="flex items-center gap-2">
+                                                {task.drive_folder_url && (
+                                                    <a
+                                                        href={task.drive_folder_url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="inline-flex items-center gap-1 text-xs font-medium text-[var(--amber)] hover:text-[var(--amber-dark)] transition-colors"
+                                                    >
+                                                        <ExternalLink size={14} />
+                                                        Drive Link
+                                                    </a>
+                                                )}
+                                            </div>
+
+                                            {userRole === 'MEMBER' && (
+                                                <button
+                                                    onClick={() => handleRaiseInterest(task.id as string)}
+                                                    disabled={isSubmitting || isUserInterested}
+                                                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${isSubmitting || isUserInterested
+                                                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                                            : 'bg-[#FEF2F2] text-[#B04040] hover:bg-[#FCE5E5]'
+                                                        }`}
+                                                >
+                                                    <Heart size={14} fill={isSubmitting || isUserInterested ? 'none' : 'currentColor'} />
+                                                    {isSubmitting ? 'Submitting...' : 'Interested'}
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
-                                    <div className="text-right">
-                                        <span className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">{task.status}</span>
-                                    </div>
-                                </div>
-
-                                {/* Drive Link and Interest Button */}
-                                <div className="flex items-center justify-between mt-4 pt-3 border-t border-[var(--cream-border)]">
-                                    <div className="flex items-center gap-2">
-                                        {task.drive_folder_url && (
-                                            <a 
-                                                href={task.drive_folder_url} 
-                                                target="_blank" 
-                                                rel="noopener noreferrer"
-                                                className="inline-flex items-center gap-1 text-xs font-medium text-[var(--amber)] hover:text-[var(--amber-dark)] transition-colors"
-                                            >
-                                                <ExternalLink size={14} />
-                                                Drive Link
-                                            </a>
-                                        )}
-                                    </div>
-
-                                    {userRole === 'MEMBER' && (
-                                        <button
-                                            onClick={() => handleRaiseInterest(task.id as string)}
-                                            disabled={submittingInterest === task.id}
-                                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                                                submittingInterest === task.id
-                                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                                    : 'bg-[#FEF2F2] text-[#B04040] hover:bg-[#FCE5E5]'
-                                            }`}
-                                        >
-                                            <Heart size={14} fill={submittingInterest === task.id ? 'none' : 'currentColor'} />
-                                            {submittingInterest === task.id ? 'Submitting...' : 'Interested'}
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
+                                );
+                            })()
                         ))}
                     </div>
                 )}

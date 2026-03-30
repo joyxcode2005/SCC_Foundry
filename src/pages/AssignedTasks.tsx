@@ -15,7 +15,7 @@ export interface TaskAssignment {
   reviewed_by: string | null;
   tasks?: {
     title: string;
-    description?: string;
+    description?: string | null;
   };
 }
 
@@ -92,6 +92,11 @@ const AssignedTasks: React.FC = () => {
                   <p className="text-sm font-medium text-blue-600 truncate">
                     {assignment.tasks?.title || `Task ID: ${assignment.task_id}`}
                   </p>
+                  {assignment.tasks?.description && (
+                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                      {assignment.tasks.description}
+                    </p>
+                  )}
                   <p className="flex items-center text-sm text-gray-500 mt-1">
                     Assigned: {formatDate(assignment.assigned_at)}
                   </p>

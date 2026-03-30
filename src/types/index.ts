@@ -98,14 +98,19 @@ export interface ProjectDetailsProps {
 
 export interface ProjectState {
     userRole: string | null;
+    currentUserId: string | null;
     currentProject: Project | null;
     tasks: Task[];
     isLoadingTasks: boolean;
+    taskInterestedUserIds: Record<string, string[]>;
 
     setUserRole: (role: string | null) => void;
+    initializeCurrentUser: () => Promise<void>;
     setCurrentProject: (project: Project | null) => void;
     fetchTasks: () => Promise<void>;
-    raiseTaskInterest: (taskId: string) => Promise<void>;
+    fetchTaskInterestsForTasks: (taskIds: string[]) => Promise<void>;
+    markTaskInterestedByCurrentUser: (taskId: string) => void;
+    raiseTaskInterest: (taskId: string) => Promise<boolean>;
 }
 
 export interface CreateTaskProps {
