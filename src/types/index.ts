@@ -117,3 +117,31 @@ export interface CreateTaskProps {
     onSuccess: () => void;
     onCancel: () => void;
 }
+
+export interface ReviewAssignment {
+    id: string;
+    task_id: string;
+    user_id: string;
+    status: string;
+    assigned_at: string;
+    submission_url: string | null;
+    tasks?: {
+        title: string;
+        category?: string | null;
+        points?: number | null;
+        drive_folder_url?: string | null;
+    } | Array<{
+        title: string;
+        category?: string | null;
+        points?: number | null;
+        drive_folder_url?: string | null;
+    }>;
+}
+
+export interface ReviewUser {
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+    email: string | null;
+    college_roll: string | null;
+}

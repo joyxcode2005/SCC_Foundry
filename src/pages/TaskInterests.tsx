@@ -38,7 +38,8 @@ export default function TaskInterests() {
             // Step 1: Fetch all task interests (which tasks have interests)
             const { data: allInterests, error: interestsError } = await supabase
                 .from("task_interests")
-                .select("task_id, user_id, status, created_at");
+                .select("task_id, user_id, status, created_at")
+                .eq("status", "PENDING");
 
             if (interestsError) {
                 console.error("Error fetching interests:", interestsError);
@@ -139,6 +140,7 @@ export default function TaskInterests() {
     };
 
     const handleAssignTask = async (taskId: string, userId: string, userName: string) => {
+        setAssigningTo({ taskId, userId });
         setAssigning(true);
         try {
             const { data: { user } } = await supabase.auth.getUser();
@@ -158,14 +160,14 @@ export default function TaskInterests() {
 
             if (assignError) throw assignError;
 
-            // Update the task interest status to ASSIGNED
-            const { error: updateError } = await supabase
+            // Remove from task interests once assignment is done.
+            const { error: removeInterestError } = await supabase
                 .from("task_interests")
-                .update({ status: "ASSIGNED" })
+                .delete()
                 .eq("task_id", taskId)
                 .eq("user_id", userId);
 
-            if (updateError) throw updateError;
+            if (removeInterestError) throw removeInterestError;
 
             toast.success(`Task assigned to ${userName}!`);
             setAssigningTo(null);
@@ -174,6 +176,7 @@ export default function TaskInterests() {
             toast.error("Failed to assign task");
             console.error(error);
         } finally {
+            setAssigningTo(null);
             setAssigning(false);
         }
     };
