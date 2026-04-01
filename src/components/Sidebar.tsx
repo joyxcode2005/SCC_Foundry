@@ -3,6 +3,11 @@ import { supabase } from "../config";
 import toast from "react-hot-toast";
 import { useState, useEffect } from "react";
 
+// 1. Add props interface so the Sidebar can receive the close function
+interface SidebarProps {
+  onClose?: () => void;
+}
+
 const navItems = [
   {
     to: "/dashboard",
@@ -82,7 +87,8 @@ const memberNavItems = [
   },
 ];
 
-export default function Sidebar() {
+// 2. Accept the onClose prop here
+export default function Sidebar({ onClose }: SidebarProps) {
   const navigate = useNavigate();
   const [loggingOut, setLoggingOut] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -110,6 +116,7 @@ export default function Sidebar() {
     try {
       await supabase.auth.signOut();
       toast.success("See you soon.");
+      if (onClose) onClose();
       navigate("/login");
     } catch (error) {
       toast.error("Logout failed");
@@ -121,24 +128,33 @@ export default function Sidebar() {
   return (
     <aside className="sticky top-0 flex h-screen w-[240px] min-w-[240px] flex-col border-r border-[var(--cream-border)] bg-white px-5 py-8">
 
-      {/* Logo */}
-      <div className="mb-10 pl-2">
-        <div className="flex items-center gap-[10px]">
-          <div className="relative flex h-7 w-7 items-center justify-center rounded-md bg-[var(--obsidian)]">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M2 2h4v4H2V2zM8 2h4v4H8V2zM2 8h4v4H2V8zM8 8h4v4H8V8z" fill="var(--cream)" fillOpacity="0.9" />
-            </svg>
+      {/* Header section with Close button for mobile */}
+      <div className="mb-10 pl-2 flex items-start justify-between">
+        <div>
+          <div className="flex items-center gap-[10px]">
+            <div className="relative flex h-7 w-7 items-center justify-center rounded-md bg-[var(--obsidian)]">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M2 2h4v4H2V2zM8 2h4v4H8V2zM2 8h4v4H2V8zM8 8h4v4H8V8z" fill="var(--cream)" fillOpacity="0.9" />
+              </svg>
+            </div>
+            <span className="font-serif text-[18px] font-bold tracking-tight text-[var(--obsidian)]">
+              Foundry
+            </span>
           </div>
-          <span className="font-serif text-[18px] font-bold tracking-tight text-[var(--obsidian)]">
-            Foundry
-          </span>
+          <div className="ml-[38px] mt-1.5 text-[10px] font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">
+            Student Portal
+          </div>
         </div>
-        <div className="ml-[38px] mt-1.5 text-[10px] font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">
-          Student Portal
-        </div>
+        
+        {/* Mobile-only close button */}
+        <button onClick={onClose} className="md:hidden text-[var(--text-muted)] hover:text-[var(--obsidian)] p-1">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
 
-      {/* Section Label */}
       <div className="mb-2.5 pl-2 text-[10px] font-semibold uppercase tracking-widest text-[var(--text-muted)]">
         Navigation
       </div>
@@ -150,6 +166,7 @@ export default function Sidebar() {
             key={item.to}
             to={item.to}
             end={item.end}
+            onClick={onClose} // 3. Close menu when link is clicked
             className={({ isActive }) =>
               `flex items-center gap-2.5 rounded-[10px] px-2.5 py-[9px] text-[13.5px] transition-all duration-150 no-underline
               ${isActive
@@ -182,6 +199,7 @@ export default function Sidebar() {
               <NavLink
                 key={item.to}
                 to={item.to}
+                onClick={onClose} // 3. Close menu when link is clicked
                 className={({ isActive }) =>
                   `flex items-center gap-2.5 rounded-[10px] px-2.5 py-[9px] text-[13.5px] transition-all duration-150 no-underline
                   ${isActive
@@ -216,6 +234,7 @@ export default function Sidebar() {
               <NavLink
                 key={item.to}
                 to={item.to}
+                onClick={onClose} // 3. Close menu when link is clicked
                 className={({ isActive }) =>
                   `flex items-center gap-2.5 rounded-[10px] px-2.5 py-[9px] text-[13.5px] transition-all duration-150 no-underline
                   ${isActive
