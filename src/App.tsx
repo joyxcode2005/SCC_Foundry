@@ -66,10 +66,10 @@ export const App = () => {
         containerStyle={{ padding: "20px" }}
       />
       <Router>
+        {/* Landing page route correctly placed inside */}
         <Routes>
-          {/* Landing page route correctly placed inside <Routes> */}
           <Route path="/" element={!session ? <Landing /> : <Navigate to="/dashboard" replace />} />
-          
+
           <Route path="/login" element={!session ? <Login /> : <Navigate to="/dashboard" replace />} />
           <Route path="/register" element={!session ? <Register /> : <Navigate to="/dashboard" replace />} />
 

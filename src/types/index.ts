@@ -145,3 +145,15 @@ export interface ReviewUser {
     email: string | null;
     college_roll: string | null;
 }
+
+
+export interface TrackedRepo {
+    id: string;
+    project_id: string;
+    repo_full_name: string;
+}
+
+export interface GitHubMapping {
+    user_id: string;
+    github_username: string;
+}
