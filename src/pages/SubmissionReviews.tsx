@@ -147,22 +147,6 @@ export default function SubmissionReviews() {
     setRowLoading(assignment.id, true);
 
     try {
-      const { data: pointsRow, error: pointsReadError } = await supabase
-        .from("users")
-        .select("points")
-        .eq("id", assignment.user_id)
-        .single();
-
-      if (pointsReadError) throw pointsReadError;
-
-      const currentPoints = Number((pointsRow as { points?: number } | null)?.points ?? 0);
-      const { error: pointsUpdateError } = await supabase
-        .from("users")
-        .update({ points: currentPoints + awardedPoints })
-        .eq("id", assignment.user_id);
-
-      if (pointsUpdateError) throw pointsUpdateError;
-
       const { data: assignmentUpdateRows, error: updateAssignmentError } = await supabase
         .from("task_assignments")
         .update({ status: "COMPLETED", reviewed_by: moderatorId, completed_at: new Date().toISOString() })
@@ -170,33 +154,54 @@ export default function SubmissionReviews() {
         .eq("status", assignment.status)
         .select("id");
 
-      if (updateAssignmentError) {
-        // Best-effort rollback for points if assignment status update fails.
-        await supabase
-          .from("users")
-          .update({ points: currentPoints })
-          .eq("id", assignment.user_id);
-        throw updateAssignmentError;
-      }
+      console.log("Assignment update result:", { assignmentUpdateRows, updateAssignmentError });
+
+      if (updateAssignmentError) throw updateAssignmentError;
 
       if (!assignmentUpdateRows || assignmentUpdateRows.length === 0) {
-        // Best-effort rollback for points if status already changed by another moderator.
-        await supabase
-          .from("users")
-          .update({ points: currentPoints })
-          .eq("id", assignment.user_id);
         throw new Error("This submission was already reviewed by another moderator.");
       }
 
+      let pointsAwarded = false;
+      if (awardedPoints > 0) {
+        const { data: pointsRow, error: pointsReadError } = await supabase
+          .from("users")
+          .select("points")
+          .eq("id", assignment.user_id)
+          .single();
+
+        const missingPointsColumn =
+          String(pointsReadError?.message || "").toLowerCase().includes("column") &&
+          String(pointsReadError?.message || "").toLowerCase().includes("points");
+
+        if (!pointsReadError) {
+          const currentPoints = Number((pointsRow as { points?: number } | null)?.points ?? 0);
+          const { error: pointsUpdateError } = await supabase
+            .from("users")
+            .update({ points: currentPoints + awardedPoints })
+            .eq("id", assignment.user_id);
+
+          if (!pointsUpdateError) {
+            pointsAwarded = true;
+          } else {
+            console.error(pointsUpdateError);
+          }
+        } else if (!missingPointsColumn) {
+          console.error(pointsReadError);
+        }
+      }
+
       await loadReviewData();
-      toast.success("Submission approved and points awarded.");
+      if (awardedPoints > 0 && pointsAwarded) {
+        toast.success("Submission approved and points awarded.");
+      } else if (awardedPoints > 0) {
+        toast.success("Submission approved. Points could not be awarded right now.");
+      } else {
+        toast.success("Submission approved.");
+      }
     } catch (err: any) {
       console.error(err);
-      if (String(err?.message || "").toLowerCase().includes("column") && String(err?.message || "").toLowerCase().includes("points")) {
-        toast.error("users.points column is missing. Add it in Supabase before approving submissions.");
-      } else {
-        toast.error(err?.message || "Failed to approve submission.");
-      }
+      toast.error(err?.message || "Failed to approve submission.");
     } finally {
       setRowLoading(assignment.id, false);
     }
