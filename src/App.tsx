@@ -18,6 +18,7 @@ import Overview from "./pages/Overview";
 import TaskInterests from "./pages/TaskInterests";
 import AssignedTasks from "./pages/AssignedTasks";
 import SubmissionReviews from "./pages/SubmissionReviews";
+import Landing from "./pages/Landing";
 
 export const App = () => {
   const [session, setSession] = useState<Session | null>(null);
@@ -66,6 +67,9 @@ export const App = () => {
       />
       <Router>
         <Routes>
+          {/* Landing page route correctly placed inside <Routes> */}
+          <Route path="/" element={!session ? <Landing /> : <Navigate to="/dashboard" replace />} />
+          
           <Route path="/login" element={!session ? <Login /> : <Navigate to="/dashboard" replace />} />
           <Route path="/register" element={!session ? <Register /> : <Navigate to="/dashboard" replace />} />
 
@@ -83,7 +87,8 @@ export const App = () => {
             <Route path="submission-reviews" element={<SubmissionReviews />} />
           </Route>
 
-          <Route path="*" element={<Navigate to={session ? "/dashboard" : "/login"} replace />} />
+          {/* Catch-all route updated to handle the root path smoothly */}
+          <Route path="*" element={<Navigate to={session ? "/dashboard" : "/"} replace />} />
         </Routes>
       </Router>
     </>
