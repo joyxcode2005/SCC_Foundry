@@ -7,6 +7,8 @@ import { Toaster } from "react-hot-toast";
 // Auth Pages
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ResetPassword from "./pages/ResetPassword";
+import VerifyEmail from "./pages/VerifyEmail";
 
 // Dashboard Layout & Pages
 import DashboardLayout from "./layout/DashboardLayout";
@@ -72,6 +74,8 @@ export const App = () => {
 
           <Route path="/login" element={!session ? <Login /> : <Navigate to="/dashboard" replace />} />
           <Route path="/register" element={!session ? <Register /> : <Navigate to="/dashboard" replace />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
           <Route
             path="/dashboard"

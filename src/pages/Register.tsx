@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { supabase } from "../config";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 import InputField from "../components/InputField";
 
 export default function Register() {
@@ -11,16 +12,31 @@ export default function Register() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+
+    if (name === "phone") {
+      const digitsOnly = value.replace(/\D/g, "").slice(0, 15);
+      setFormData((prev) => ({ ...prev, phone: digitsOnly }));
+      return;
+    }
+
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    if (!/^\d{7,15}$/.test(formData.phone)) {
+      setError("Phone number must contain only digits (7-15 digits).");
+      setLoading(false);
+      return;
+    }
 
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: formData.email,
@@ -42,7 +58,8 @@ export default function Register() {
     if (authError) { setError(authError.toString()); setLoading(false); return; }
     if (!authData?.user) { setError('Registration failed. Please try again.'); setLoading(false); return; }
 
-    setSuccess(true);
+    await supabase.auth.signOut();
+    navigate('/verify-email', { state: { email: formData.email } });
     setLoading(false);
   };
 
@@ -85,24 +102,7 @@ export default function Register() {
             </p>
           </div>
 
-          {success ? (
-            <div className="p-8 bg-white rounded-2xl border border-[var(--cream-border)] text-center shadow-md">
-              <div className="w-[52px] h-[52px] bg-[#EEF7F0] rounded-full flex items-center justify-center mx-auto mb-5">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2D7A4A" strokeWidth="2.5" strokeLinecap="round">
-                  <path d="M20 6L9 17l-5-5" />
-                </svg>
-              </div>
-              <h3 className="font-['Playfair_Display',_serif] text-[22px] font-semibold text-[var(--obsidian)] mb-2.5">
-                Account created!
-              </h3>
-              <p className="text-sm text-[var(--text-muted)] leading-[1.6] mb-6">
-                Please check your email to verify your account before signing in.
-              </p>
-              <Link to="/login" className="btn-primary no-underline">
-                Go to Sign In
-              </Link>
-            </div>
-          ) : (
+          {
             <div className="bg-white rounded-2xl border border-[var(--cream-border)] shadow-md overflow-hidden">
               {error && (
                 <div className="py-3.5 px-6 bg-[#FEF2F2] border-b border-[#FECACA] text-[13.5px] text-[#B04040] flex items-center gap-2">
@@ -141,7 +141,22 @@ export default function Register() {
                       customClass="uppercase tracking-[0.05em] font-medium"
                     />
                     <InputField onChange={handleChange} label="Department" name="department" required placeholder="Computer Science" />
-                    <InputField onChange={handleChange} label="Phone" name="phone" type="tel" required />
+                    <div>
+                      <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5 tracking-[0.03em]">
+                        Phone<span className="text-[var(--amber)] ml-0.5">*</span>
+                      </label>
+                      <input
+                        required
+                        type="tel"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        inputMode="numeric"
+                        pattern="[0-9]{7,15}"
+                        className="foundry-input"
+                        placeholder="Enter phone number"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -153,7 +168,29 @@ export default function Register() {
                   </p>
                   <div className="grid grid-cols-2 gap-4">
                     <InputField onChange={handleChange} label="Email Address" name="email" type="email" required />
-                    <InputField onChange={handleChange} label="Password" name="password" type="password" required />
+                    <div>
+                      <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5 tracking-[0.03em]">
+                        Password<span className="text-[var(--amber)] ml-0.5">*</span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          required
+                          type={showPassword ? 'text' : 'password'}
+                          name="password"
+                          value={formData.password}
+                          onChange={handleChange}
+                          className="foundry-input pr-11"
+                          placeholder="••••••••"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-[var(--text-muted)] hover:text-[var(--text-secondary)] flex p-0.5 transition-colors duration-150"
+                        >
+                          {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -174,7 +211,7 @@ export default function Register() {
                 </div>
               </form>
             </div>
-          )}
+          }
         </div>
       </div>
     </div>

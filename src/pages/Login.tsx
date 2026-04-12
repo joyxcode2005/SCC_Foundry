@@ -11,6 +11,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const [sendingReset, setSendingReset] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,60 +39,43 @@ export default function Login() {
     navigate('/dashboard');
   };
 
+  const handleForgotPassword = async () => {
+    setError('');
+
+    const roll = collegeRoll.trim().toUpperCase();
+    if (!roll) {
+      setError('Enter your college roll first to reset password.');
+      return;
+    }
+
+    setSendingReset(true);
+
+    const { data: email, error: rpcError } = await supabase
+      .rpc('get_email_by_roll', { roll_input: roll });
+
+    if (rpcError || !email) {
+      setError('Could not find an account for this college roll.');
+      setSendingReset(false);
+      return;
+    }
+
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+
+    if (resetError) {
+      setError(resetError.message);
+      setSendingReset(false);
+      return;
+    }
+
+    toast.success('Password reset link sent to your email.');
+    setSendingReset(false);
+  };
+
   return (
     <div className="min-h-screen flex bg-[var(--cream)]">
-      {/* Left Panel - Decorative */}
-      <div className="w-[42%] bg-[var(--obsidian)] flex flex-col justify-between p-12 relative overflow-hidden">
-        {/* Background grid pattern */}
-        <div 
-          className="absolute inset-0 bg-[length:40px_40px]"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(250,248,243,0.04) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(250,248,243,0.04) 1px, transparent 1px)
-            `,
-          }} 
-        />
 
-        {/* Decorative circles */}
-        <div className="absolute -bottom-20 -right-20 w-[320px] h-[320px] rounded-full border border-[rgba(200,134,42,0.2)]" />
-        <div className="absolute -bottom-[120px] -right-[120px] w-[480px] h-[480px] rounded-full border border-[rgba(200,134,42,0.1)]" />
-        <div className="absolute top-[30%] -left-10 w-[160px] h-[160px] rounded-full bg-[rgba(200,134,42,0.06)]" />
-
-        {/* Logo */}
-        <div className="relative z-10">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-[var(--amber)] rounded-md flex items-center justify-center">
-              <svg width="16" height="16" viewBox="0 0 14 14" fill="none">
-                <path d="M2 2h4v4H2V2zM8 2h4v4H8V2zM2 8h4v4H2V8zM8 8h4v4H8V8z" fill="white" fillOpacity="0.95"/>
-              </svg>
-            </div>
-            <span className="font-['Playfair_Display',_serif] text-[20px] font-bold text-[var(--cream)] tracking-[-0.02em]">
-              Foundry
-            </span>
-          </div>
-        </div>
-
-        {/* Center content */}
-        <div className="relative z-10">
-          <div className="w-7 h-[2px] bg-[var(--amber)] mb-6 rounded-[1px]" />
-          <h2 className="font-['Playfair_Display',_serif] text-[42px] font-medium text-[var(--cream)] leading-[1.2] tracking-[-0.02em] mb-4">
-            Build your<br />
-            <em className="italic text-[var(--amber-light)]">future</em><br />
-            here.
-          </h2>
-          <p className="text-sm text-[#faf8f3]/50 leading-[1.7] max-w-[260px]">
-            Your academic journey, organised. Track progress, collaborate on projects, and rise to the top.
-          </p>
-        </div>
-
-        {/* Bottom quote */}
-        <div className="relative z-10 border-l-2 border-[var(--amber)] pl-4">
-          <p className="text-xs text-[#faf8f3]/40 leading-[1.6] italic">
-            "Excellence is not a destination but a continuous journey."
-          </p>
-        </div>
-      </div>
 
       {/* Right Panel - Form */}
       <div className="flex-1 flex items-center justify-center p-12">
@@ -108,7 +92,7 @@ export default function Login() {
           {error && (
             <div className="py-3 px-3.5 bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] mb-5 text-[13.5px] text-[#B04040] flex items-center gap-2">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
               {error}
             </div>
@@ -130,9 +114,19 @@ export default function Login() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5 tracking-[0.03em]">
-                Password
-              </label>
+              <div className="mb-1.5 flex items-center justify-between">
+                <label className="block text-xs font-semibold text-[var(--text-secondary)] tracking-[0.03em]">
+                  Password
+                </label>
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  disabled={sendingReset}
+                  className="cursor-pointer border-none bg-transparent p-0 text-xs text-[var(--obsidian)] underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {sendingReset ? 'Sending...' : 'Forgot password?'}
+                </button>
+              </div>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -160,7 +154,7 @@ export default function Login() {
               {loading ? (
                 <span className="flex items-center gap-2">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="animate-spin">
-                    <path d="M21 12a9 9 0 11-6.219-8.56"/>
+                    <path d="M21 12a9 9 0 11-6.219-8.56" />
                   </svg>
                   Signing in...
                 </span>
