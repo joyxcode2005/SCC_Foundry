@@ -1,5 +1,9 @@
 {
+<<<<<<< HEAD
   "recommendations": [
     "denoland.vscode-deno"
   ]
+=======
+  "recommendations": ["denoland.vscode-deno"]
+>>>>>>> 8a68f12908f70254da19d2541cab91381ebac179
 }
