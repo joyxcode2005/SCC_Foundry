@@ -28,6 +28,3 @@ Weekly Limits: To prevent burnout and ensure everyone gives 100 percent on the w
 * **Task Capacity limits:** Each individual task has a maximum limit on how many members can apply for it. Once the assignment cap is reached, the task will no longer accept new "Interested" requests.
 * **Flexible Deadlines:** Deadlines are project-dependent. A task may or may not have a strict deadline based on the specific needs of that project.
 * **End-of-Season Rewards:** Hard work pays off! The top **3 to 5 members** on the leaderboard with the highest points will be officially recognized and awarded.
-
-This is a test change
-This is another small change to test
