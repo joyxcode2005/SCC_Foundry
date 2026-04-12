@@ -1,8 +1,90 @@
+import { useEffect, useState } from "react";
+import { toast } from "react-hot-toast";
 import EmptyState from "../components/EmptyState";
+import { supabase } from "../config";
 import { medalBg, medalEmoji } from "../config/constants";
-import type { Props } from "../types";
+import type { Student } from "../types";
 
-export default function Leaderboard({ students = [], loading = false }: Props) {
+type LeaderboardUserRow = {
+  user_id: string;
+  first_name: string | null;
+  last_name: string | null;
+  department: string | null;
+  total_points: number | string | null;
+};
+
+export default function Leaderboard() {
+  const [students, setStudents] = useState<Student[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+
+    const fetchLeaderboard = async () => {
+      setLoading(true);
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      const currentUserId = user?.id ?? null;
+
+      const { data, error } = await supabase
+        .from("leaderboard")
+        .select("user_id, first_name, last_name, department, total_points");
+
+      if (!active) {
+        return;
+      }
+
+      if (error || !data) {
+        toast.error("Failed to load leaderboard data.");
+        setStudents([]);
+        setLoading(false);
+        return;
+      }
+
+      const rankedStudents = (data as LeaderboardUserRow[])
+        .map((row) => {
+          const firstName = (row.first_name ?? "").trim();
+          const lastName = (row.last_name ?? "").trim();
+          const fullName = `${firstName} ${lastName}`.trim() || "Unknown Student";
+          const pointsValue = Number(row.total_points ?? 0);
+
+          return {
+            id: row.user_id,
+            name: fullName,
+            department: (row.department ?? "-").trim() || "-",
+            points: Number.isFinite(pointsValue) ? pointsValue : 0,
+            isYou: currentUserId === row.user_id,
+          };
+        })
+        .sort((a, b) => {
+          if (b.points !== a.points) {
+            return b.points - a.points;
+          }
+
+          return a.name.localeCompare(b.name);
+        })
+        .map((student, index) => ({
+          rank: index + 1,
+          name: student.name,
+          roll: "-",
+          department: student.department,
+          points: student.points,
+          isYou: student.isYou,
+        }));
+
+      setStudents(rankedStudents);
+      setLoading(false);
+    };
+
+    fetchLeaderboard();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const top3 = students.slice(0, 3);
   const rest = students.slice(3);
 
@@ -42,8 +124,8 @@ export default function Leaderboard({ students = [], loading = false }: Props) {
                   <div
                     key={s.rank}
                     className={`relative overflow-hidden rounded-2xl p-6 text-center border ${isCenter
-                        ? 'bg-[var(--obsidian)] border-[var(--obsidian)] shadow-lg mt-0'
-                        : 'bg-white border-[var(--cream-border)] shadow-sm mt-4'
+                      ? 'bg-[var(--obsidian)] border-[var(--obsidian)] shadow-lg mt-0'
+                      : 'bg-white border-[var(--cream-border)] shadow-sm mt-4'
                       }`}
                   >
                     {isCenter && <div className="absolute top-0 left-0 right-0 h-[3px] bg-[var(--amber)]" />}
@@ -59,9 +141,7 @@ export default function Leaderboard({ students = [], loading = false }: Props) {
                     <p className={`text-sm font-semibold mb-1 ${isCenter ? 'text-[var(--cream)]' : 'text-[var(--obsidian)]'}`}>
                       {s.name}
                     </p>
-                    <p className={`text-[11px] mb-3 ${isCenter ? 'text-[#faf8f3]/50' : 'text-[var(--text-muted)]'}`}>
-                      {s.roll}
-                    </p>
+
                     <p className={`font-['Playfair_Display',_serif] text-2xl font-bold ${isCenter ? 'text-[var(--amber-light)]' : 'text-[var(--obsidian)]'}`}>
                       {s.points.toLocaleString()}
                     </p>
@@ -100,7 +180,6 @@ export default function Leaderboard({ students = [], loading = false }: Props) {
                       <span className="text-sm font-medium text-[var(--obsidian)]">{student.name}</span>
                       {student.isYou && <span className="foundry-badge badge-amber">You</span>}
                     </div>
-                    <span className="text-[11px] text-[var(--text-muted)] font-mono">{student.roll}</span>
                   </div>
                   <span className="text-[13px] text-[var(--text-secondary)]">{student.department}</span>
                   <span className={`font-['Playfair_Display',_serif] text-base font-semibold ${student.isYou ? 'text-[var(--amber)]' : 'text-[var(--obsidian)]'}`}>

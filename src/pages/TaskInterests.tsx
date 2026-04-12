@@ -59,10 +59,30 @@ export default function TaskInterests() {
             const uniqueTaskIds = Array.from(new Set(allInterests.map(i => i.task_id)));
             console.log("Unique task IDs with interests:", uniqueTaskIds);
 
+            // Exclude tasks that already have any assignment.
+            const { data: assignmentsData, error: assignmentsError } = await supabase
+                .from("task_assignments")
+                .select("task_id")
+                .in("task_id", uniqueTaskIds);
+
+            if (assignmentsError) {
+                console.error("Error fetching assignments:", assignmentsError);
+                throw assignmentsError;
+            }
+
+            const assignedTaskIds = new Set((assignmentsData || []).map((row) => row.task_id));
+            const unassignedTaskIds = uniqueTaskIds.filter((taskId) => !assignedTaskIds.has(taskId));
+
+            if (unassignedTaskIds.length === 0) {
+                setTasksWithInterests([]);
+                setLoading(false);
+                return;
+            }
+
             const { data: tasksData, error: tasksError } = await supabase
                 .from("tasks")
                 .select("id, title, description, category, points, project_id")
-                .in("id", uniqueTaskIds);
+                .in("id", unassignedTaskIds);
 
             if (tasksError) {
                 console.error("Error fetching tasks:", tasksError);
@@ -160,12 +180,19 @@ export default function TaskInterests() {
 
             if (assignError) throw assignError;
 
+            // Update task status to ASSIGNED
+            const { error: taskUpdateError } = await supabase
+                .from("tasks")
+                .update({ status: "ASSIGNED" })
+                .eq("id", taskId);
+
+            if (taskUpdateError) throw taskUpdateError;
+
             // Remove from task interests once assignment is done.
             const { error: removeInterestError } = await supabase
                 .from("task_interests")
                 .delete()
-                .eq("task_id", taskId)
-                .eq("user_id", userId);
+                .eq("task_id", taskId);
 
             if (removeInterestError) throw removeInterestError;
 

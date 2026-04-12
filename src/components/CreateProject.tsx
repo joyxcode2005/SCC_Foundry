@@ -14,7 +14,10 @@ export default function CreateProject({ onSuccess, onCancel }: CreateProjectProp
     title: "",
     description: "",
     drive_url: "",
+    repo_full_name: "",
   });
+
+  const repoPattern = /^[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+$/;
 
   useEffect(() => {
     async function getRole() {
@@ -34,6 +37,12 @@ export default function CreateProject({ onSuccess, onCancel }: CreateProjectProp
       return;
     }
 
+    const normalizedRepo = formData.repo_full_name.trim();
+    if (!repoPattern.test(normalizedRepo)) {
+      toast.error("Repository must be in owner/repo format.");
+      return;
+    }
+
     setLoading(true);
     const toastId = toast.loading("Creating project...");
 
@@ -47,12 +56,31 @@ export default function CreateProject({ onSuccess, onCancel }: CreateProjectProp
 
     const { data: newProject, error: projectError } = await supabase
       .from("projects")
-      .insert([{ ...formData, created_by: user.id }])
+      .insert([{
+        title: formData.title,
+        description: formData.description,
+        drive_url: formData.drive_url,
+        created_by: user.id,
+      }])
       .select()
       .single();
 
     if (projectError) {
       toast.error(projectError.message, { id: toastId });
+      setLoading(false);
+      return;
+    }
+
+    const { error: trackedRepoError } = await supabase
+      .from("tracked_repositories")
+      .insert([{
+        project_id: newProject.id,
+        repo_full_name: normalizedRepo,
+      }]);
+
+    if (trackedRepoError) {
+      await supabase.from("projects").delete().eq("id", newProject.id);
+      toast.error(trackedRepoError.message, { id: toastId });
       setLoading(false);
       return;
     }
@@ -163,6 +191,23 @@ export default function CreateProject({ onSuccess, onCancel }: CreateProjectProp
               />
               <p className="text-[11px] text-[var(--text-muted)] mt-1.5 leading-relaxed">
                 Optional. Paste a shared Google Drive folder or document link for the team.
+              </p>
+            </div>
+
+            <div className="mt-4">
+              <label className="block text-[11px] font-semibold tracking-[0.05em] uppercase text-[var(--text-muted)] mb-1.5">
+                GitHub Repository <span className="text-[var(--amber)]">*</span>
+              </label>
+              <input
+                required
+                type="text"
+                value={formData.repo_full_name}
+                onChange={(e) => setFormData({ ...formData, repo_full_name: e.target.value })}
+                placeholder="owner/repository"
+                className="foundry-input"
+              />
+              <p className="text-[11px] text-[var(--text-muted)] mt-1.5 leading-relaxed">
+                Required. Enter the repository in owner/repo format.
               </p>
             </div>
           </div>

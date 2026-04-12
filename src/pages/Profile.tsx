@@ -2,12 +2,17 @@ import { useEffect, useState } from "react";
 import InputRow from "../components/InputRow";
 import type { UserProfile } from "../types";
 import { supabase } from "../config";
+import toast from "react-hot-toast";
+import { Github } from "lucide-react";
 
 export default function Profile() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
+    const [githubUsername, setGithubUsername] = useState('');
+    const [isGithubLoading, setIsGithubLoading] = useState(true);
+    const [isGithubSaving, setIsGithubSaving] = useState(false);
 
     const [profile, setProfile] = useState<UserProfile>({
         first_name: '', middle_name: '', last_name: '',
@@ -20,9 +25,19 @@ export default function Profile() {
             setLoading(true);
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-                const { data, error } = await supabase.from('users')
-                    .select('first_name, middle_name, last_name, phone, college_roll, department, role, email')
-                    .eq('id', user.id).single();
+                const [profileResponse, githubResponse] = await Promise.all([
+                    supabase.from('users')
+                        .select('first_name, middle_name, last_name, phone, college_roll, department, role, email')
+                        .eq('id', user.id).single(),
+                    supabase.from('user_github_profiles')
+                        .select('github_username')
+                        .eq('user_id', user.id)
+                        .maybeSingle(),
+                ]);
+
+                const { data, error } = profileResponse;
+                const { data: githubData, error: githubError } = githubResponse;
+
                 if (!error && data) {
                     const p = {
                         first_name: data.first_name || '', middle_name: data.middle_name || '',
@@ -30,13 +45,49 @@ export default function Profile() {
                         college_roll: data.college_roll || '', department: data.department || '',
                         role: data.role || 'MEMBER', email: data.email || user.email || '',
                     };
-                    setProfile(p); setFormData(p);
+                    setProfile(p);
+                    setFormData(p);
+                }
+
+                if (!githubError) {
+                    setGithubUsername(githubData?.github_username || '');
                 }
             }
+            setIsGithubLoading(false);
             setLoading(false);
         }
         getProfile();
     }, []);
+
+    const handleGithubSave = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setIsGithubSaving(true);
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) throw new Error('Not logged in.');
+
+            const normalizedUsername = githubUsername.trim().replace(/^@+/, '');
+
+            const { error } = await supabase
+                .from('user_github_profiles')
+                .upsert(
+                    {
+                        user_id: user.id,
+                        github_username: normalizedUsername,
+                        updated_at: new Date().toISOString(),
+                    },
+                    { onConflict: 'user_id' }
+                );
+
+            if (error) throw error;
+            setGithubUsername(normalizedUsername);
+            toast.success('GitHub profile linked successfully.');
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to link GitHub profile.');
+        } finally {
+            setIsGithubSaving(false);
+        }
+    };
 
     const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -258,6 +309,41 @@ export default function Profile() {
                         </div>
                     </form>
                 )}
+            </div>
+
+            <div className="mt-5 relative overflow-hidden rounded-2xl border border-white/20 bg-gradient-to-br from-[#111827] via-[#0f172a] to-[#111827] p-6 shadow-[0_14px_50px_rgba(2,6,23,0.4)]">
+                <div className="absolute -top-14 -right-10 h-36 w-36 rounded-full bg-[#60a5fa]/20 blur-2xl" />
+                <div className="absolute -bottom-16 -left-8 h-40 w-40 rounded-full bg-[#38bdf8]/15 blur-2xl" />
+
+                <div className="relative z-10">
+                    <div className="flex items-center gap-2 mb-1.5">
+                        <Github size={18} className="text-blue-300" />
+                        <h3 className="font-['Playfair_Display',_serif] text-lg font-semibold text-white">
+                            GitHub Integration
+                        </h3>
+                    </div>
+                    <p className="text-sm text-slate-300 mb-4">
+                        Link your GitHub username to enable pull request based task tracking.
+                    </p>
+
+                    <form onSubmit={handleGithubSave} className="flex flex-col sm:flex-row gap-3">
+                        <input
+                            type="text"
+                            value={githubUsername}
+                            onChange={(e) => setGithubUsername(e.target.value)}
+                            placeholder="GitHub Username"
+                            disabled={isGithubLoading || isGithubSaving}
+                            className="w-full sm:flex-1 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm text-white placeholder:text-slate-300 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-blue-400/60 disabled:opacity-70"
+                        />
+                        <button
+                            type="submit"
+                            disabled={isGithubLoading || isGithubSaving}
+                            className="rounded-xl border border-blue-300/30 bg-blue-400/20 px-5 py-2.5 text-sm font-semibold text-blue-100 transition-all hover:bg-blue-400/30 disabled:opacity-70"
+                        >
+                            {isGithubLoading ? 'Loading...' : isGithubSaving ? 'Saving...' : 'Save / Link'}
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     );

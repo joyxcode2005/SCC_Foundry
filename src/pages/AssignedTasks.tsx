@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../config";
 import toast from "react-hot-toast";
+import { Check, Copy, Github } from "lucide-react";
 
 type AssignmentStatus = "OPEN" | "ASSIGNED" | "IN_REVIEW" | "COMPLETED" | "CANCELLED";
 
@@ -13,19 +14,23 @@ interface TaskAssignment {
   completed_at: string | null;
   submission_url: string | null;
   tasks?: {
+    id?: string;
     title: string;
     description?: string | null;
     category?: string | null;
     points?: number | null;
     deadline?: string | null;
     drive_folder_url?: string | null;
+    github_pr_url?: string | null;
   } | Array<{
+    id?: string;
     title: string;
     description?: string | null;
     category?: string | null;
     points?: number | null;
     deadline?: string | null;
     drive_folder_url?: string | null;
+    github_pr_url?: string | null;
   }>;
 }
 
@@ -65,11 +70,12 @@ export default function AssignedTasks() {
   const [actionLoadingById, setActionLoadingById] = useState<Record<string, boolean>>({});
   const [submissionById, setSubmissionById] = useState<Record<string, string>>({});
   const [startedById, setStartedById] = useState<Record<string, boolean>>({});
+  const [copiedTaskId, setCopiedTaskId] = useState<string | null>(null);
 
   const loadAssignments = async (userId: string) => {
     const { data, error: dbError } = await supabase
       .from("task_assignments")
-      .select("id, task_id, user_id, status, assigned_at, completed_at, submission_url, tasks(title, description, category, points, deadline, drive_folder_url)")
+      .select("id, task_id, user_id, status, assigned_at, completed_at, submission_url, tasks(id, title, description, category, points, deadline, drive_folder_url, github_pr_url)")
       .eq("user_id", userId)
       .order("assigned_at", { ascending: false });
 
@@ -138,6 +144,17 @@ export default function AssignedTasks() {
   const handleStartTask = async (assignmentId: string) => {
     setStartedById((prev) => ({ ...prev, [assignmentId]: true }));
     toast.success("You can now submit your work link.");
+  };
+
+  const handleCopyTaskId = async (taskId: string) => {
+    try {
+      await navigator.clipboard.writeText(taskId);
+      setCopiedTaskId(taskId);
+      toast.success("Task ID copied.");
+      setTimeout(() => setCopiedTaskId((prev) => (prev === taskId ? null : prev)), 1400);
+    } catch {
+      toast.error("Failed to copy Task ID.");
+    }
   };
 
   const handleSubmitForReview = async (assignment: TaskAssignment) => {
@@ -221,6 +238,8 @@ export default function AssignedTasks() {
             const statusClass = statusStyles[normalizedStatus];
             const isRowLoading = !!actionLoadingById[assignment.id];
             const task = getTaskFromRelation(assignment.tasks);
+            const taskIdentity = task?.id || assignment.task_id;
+            const isTechTask = task?.category?.toLowerCase() === "tech";
 
 
             return (
@@ -266,7 +285,7 @@ export default function AssignedTasks() {
                   )}
                 </div>
 
-                {(normalizedStatus === "ASSIGNED" || normalizedStatus === "OPEN") && !startedById[assignment.id] && (
+                {(normalizedStatus === "ASSIGNED" || normalizedStatus === "OPEN") && !startedById[assignment.id] && !isTechTask && (
                   <div className="mt-4">
                     <button
                       onClick={() => handleStartTask(assignment.id)}
@@ -277,7 +296,7 @@ export default function AssignedTasks() {
                   </div>
                 )}
 
-                {(normalizedStatus === "ASSIGNED" || normalizedStatus === "OPEN") && startedById[assignment.id] && (
+                {(normalizedStatus === "ASSIGNED" || normalizedStatus === "OPEN") && startedById[assignment.id] && !isTechTask && (
                   <div className="mt-4 space-y-2">
                     <label className="block text-xs font-semibold text-[var(--obsidian)]">
                       Submission Link (Google Drive or Google Docs)
@@ -304,7 +323,35 @@ export default function AssignedTasks() {
                   </div>
                 )}
 
-                {(normalizedStatus === "IN_REVIEW" || normalizedStatus === "COMPLETED" || normalizedStatus === "CANCELLED") && (
+                {(normalizedStatus === "ASSIGNED" || normalizedStatus === "OPEN") && isTechTask && (
+                  <div className="mt-4 rounded-xl border border-white/20 bg-[linear-gradient(135deg,rgba(15,23,42,0.92),rgba(17,24,39,0.9))] px-4 py-3">
+                    <button
+                      onClick={() => handleCopyTaskId(taskIdentity)}
+                      className="inline-flex items-center gap-2 rounded-lg border border-slate-500/40 bg-white/10 px-3 py-2 text-xs font-semibold text-slate-100 backdrop-blur-md transition-all hover:bg-white/20"
+                    >
+                      {copiedTaskId === taskIdentity ? <Check size={14} /> : <Copy size={14} />}
+                      {copiedTaskId === taskIdentity ? "Copied!" : "Copy Task ID"}
+                    </button>
+
+                    <p className="mt-2 text-xs text-slate-300/90">
+                      Include <span className="font-mono text-slate-100">Closes Task: [{taskIdentity}]</span> in your GitHub PR description.
+                    </p>
+
+                    {task?.github_pr_url && (
+                      <a
+                        href={task.github_pr_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-3 inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-sm px-3 py-1 text-blue-400 hover:bg-white/20 transition-all"
+                      >
+                        <Github size={14} />
+                        View Active PR
+                      </a>
+                    )}
+                  </div>
+                )}
+
+                {(normalizedStatus === "IN_REVIEW" || normalizedStatus === "COMPLETED" || normalizedStatus === "CANCELLED") && !isTechTask && (
                   <div className="mt-4 rounded-lg border border-[var(--cream-border)] bg-white px-3 py-2">
                     <p className="text-xs font-semibold text-[var(--obsidian)]">Submitted Work</p>
                     {assignment.submission_url ? (
