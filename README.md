@@ -30,3 +30,4 @@ Weekly Limits: To prevent burnout and ensure everyone gives 100 percent on the w
 * **End-of-Season Rewards:** Hard work pays off! The top **3 to 5 members** on the leaderboard with the highest points will be officially recognized and awarded.
 
 This is a test change
+This is another small change to test
